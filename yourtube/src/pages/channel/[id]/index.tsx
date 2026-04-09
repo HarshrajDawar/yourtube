@@ -22,7 +22,7 @@ const index = () => {
   useEffect(() => {
     const fetchVideos = async () => {
       try {
-        const res = await axiosInstance.get("/video/getall");
+        const res = await axiosInstance.get("/api/videos");
         // Filter videos by this channel (using uploader name for simplicity as per existing schema)
         const channelVideos = res.data.filter((v: any) => v.videochanel === user?.channelname || v.uploader === user?.name);
         setVideos(channelVideos);

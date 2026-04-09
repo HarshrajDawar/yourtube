@@ -21,12 +21,14 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "*",
+    origin: "https://your-frontend.vercel.app",
     methods: ["GET", "POST"]
   }
 });
 
-app.use(cors());
+app.use(cors({
+  origin: "https://your-frontend.vercel.app"
+}));
 app.use(express.json({ limit: "30mb", extended: true }));
 app.use(express.urlencoded({ limit: "30mb", extended: true }));
 app.use("/uploads", express.static(path.join("uploads")));
@@ -38,6 +40,7 @@ app.get("/", (req, res) => {
 
 app.use("/user", userroutes);
 app.use("/video", videoroutes);
+app.use("/api/videos", videoroutes);
 app.use("/like", likeroutes);
 app.use("/watch", watchlaterroutes);
 app.use("/history", historyrroutes);
