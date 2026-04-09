@@ -19,7 +19,7 @@ const SearchResult = ({ query }: any) => {
   const fetchVideos = async () => {
     try {
       setLoading(true);
-      const res = await axiosInstance.get(`/api/videos?search=${query}`);
+      const res = await axiosInstance.get(`/video/getall?search=${query}`);
       setvideos(res.data);
     } catch (err) {
       console.error("Search fetch error:", err);

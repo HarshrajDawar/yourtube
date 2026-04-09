@@ -6,7 +6,6 @@ const routes = express.Router();
 
 routes.post("/upload", upload.single("file"), uploadvideo);
 routes.get("/getall", getallvideo);
-routes.get("/", getallvideo);
 routes.patch("/:id", updateVideoDetails);
 routes.delete("/:id", deleteVideo);
 export default routes;

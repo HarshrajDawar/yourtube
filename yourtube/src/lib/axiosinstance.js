@@ -1,12 +1,9 @@
 import axios from "axios";
-
-export const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "https://yourtube-jfcz.onrender.com";
-
 const axiosInstance = axios.create({
-  baseURL: API_URL,
+  baseURL: process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000",
   headers: {
     "Content-Type": "application/json",
   },
+ 
 });
-
 export default axiosInstance;
