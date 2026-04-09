@@ -25,7 +25,7 @@ if (typeof window !== "undefined") {
   RecordRTC = require("recordrtc");
 }
 
-const SOCKET_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
+const SOCKET_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "https://yourtube-zg73.onrender.com";
 
 export const useWebRTC = (userName: string) => {
   const [me, setMe] = useState("");

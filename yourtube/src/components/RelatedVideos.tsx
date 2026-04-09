@@ -14,7 +14,7 @@ interface RelatedVideosProps {
 }
 
 export default function RelatedVideos({ videos }: RelatedVideosProps) {
-  const backendUrl = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
+  const backendUrl = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_BACKEND_URL || 'https://yourtube-zg73.onrender.com';
   return (
     <div className="space-y-2">
       {videos.map((video) => (

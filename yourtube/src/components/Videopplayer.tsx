@@ -256,7 +256,7 @@ export default function VideoPlayer({ video }: VideoPlayerProps) {
         onContextMenu={(e) => e.preventDefault()}
         className="w-full h-full cursor-pointer"
         poster={`/placeholder.svg?height=480&width=854`}
-        src={`${process.env.BACKEND_URL || process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'}/${video?.filepath}`}
+        src={`${process.env.BACKEND_URL || process.env.NEXT_PUBLIC_BACKEND_URL || 'https://yourtube-zg73.onrender.com'}/${video?.filepath}`}
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
         onLoadedMetadata={() => setDuration(videoRef.current?.duration || 0)}
