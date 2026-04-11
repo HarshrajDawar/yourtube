@@ -23,7 +23,7 @@ const DurationLabel = ({ filepath }: { filepath: string }) => {
     const videoEl = document.createElement("video");
     const safeBaseUrl = backendUrl.replace(/\/$/, '');
     const normalizedPath = filepath.replace(/\\/g, '/').replace(/^\//, '');
-    const encodedPath = normalizedPath.split('/').map(segment => encodeURIComponent(segment)).join('/');
+    const encodedPath = normalizedPath.split('/').map((segment: string) => encodeURIComponent(segment)).join('/');
     videoEl.src = `${safeBaseUrl}/${encodedPath}`;
     videoEl.onloadedmetadata = () => {
       const seconds = Math.floor(videoEl.duration);
@@ -60,7 +60,7 @@ export default function RelatedVideos({ videos }: RelatedVideosProps) {
               src={(() => {
                 const safeBaseUrl = backendUrl.replace(/\/$/, '');
                 const normalizedPath = video.filepath.replace(/\\/g, '/').replace(/^\//, '');
-                const encodedPath = normalizedPath.split('/').map(segment => encodeURIComponent(segment)).join('/');
+                const encodedPath = normalizedPath.split('/').map((segment: string) => encodeURIComponent(segment)).join('/');
                 return `${safeBaseUrl}/${encodedPath}#t=1`;
               })()}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200 pointer-events-none"

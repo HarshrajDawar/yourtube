@@ -273,7 +273,7 @@ export default function VideoPlayer({ video }: VideoPlayerProps) {
         src={video?.filepath ? (() => {
           const baseUrl = (process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000').replace(/\/$/, '');
           const normalizedPath = video.filepath.replace(/\\/g, '/').replace(/^\//, '');
-          const encodedPath = normalizedPath.split('/').map(segment => encodeURIComponent(segment)).join('/');
+          const encodedPath = normalizedPath.split('/').map((segment: string) => encodeURIComponent(segment)).join('/');
           return `${baseUrl}/${encodedPath}`;
         })() : ''}
         onPlay={() => setIsPlaying(true)}

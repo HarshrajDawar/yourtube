@@ -14,7 +14,7 @@ export default function VideoCard({ video, onEdit, onDelete }: any) {
     const videoEl = document.createElement("video");
     const baseUrl = (process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000').replace(/\/$/, '');
     const normalizedPath = video.filepath.replace(/\\/g, '/').replace(/^\//, '');
-    const encodedPath = normalizedPath.split('/').map(segment => encodeURIComponent(segment)).join('/');
+    const encodedPath = normalizedPath.split('/').map((segment: string) => encodeURIComponent(segment)).join('/');
     videoEl.src = `${baseUrl}/${encodedPath}`;
 
     videoEl.onloadedmetadata = () => {
@@ -43,7 +43,7 @@ export default function VideoCard({ video, onEdit, onDelete }: any) {
               src={video?.filepath ? (() => {
                 const baseUrl = (process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000').replace(/\/$/, '');
                 const normalizedPath = video.filepath.replace(/\\/g, '/').replace(/^\//, '');
-                const encodedPath = normalizedPath.split('/').map(segment => encodeURIComponent(segment)).join('/');
+                const encodedPath = normalizedPath.split('/').map((segment: string) => encodeURIComponent(segment)).join('/');
                 return `${baseUrl}/${encodedPath}#t=1`;
               })() : ''}
               className="w-full h-full object-cover"
