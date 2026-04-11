@@ -59,7 +59,10 @@ const index = () => {
           {activeTab === "videos" && (
             <>
               <div className="mb-12">
-                <VideoUploader channelId={id} channelName={channel?.channelname} />
+                <h2 className="text-xl font-bold mb-6">Upload New Video</h2>
+                <div className="border-2 border-dashed border-border rounded-2xl p-8 text-center bg-secondary/10">
+                  <VideoUploader channelId={id} channelName={channel?.channelname} />
+                </div>
               </div>
               
               <div className="pb-12">

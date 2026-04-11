@@ -21,10 +21,8 @@ const DurationLabel = ({ filepath }: { filepath: string }) => {
   React.useEffect(() => {
     if (!filepath) return;
     const videoEl = document.createElement("video");
-    const safeBaseUrl = backendUrl.replace(/\/$/, '');
-    const normalizedPath = filepath.replace(/\\/g, '/').replace(/^\//, '');
-    const encodedPath = normalizedPath.split('/').map((segment: string) => encodeURIComponent(segment)).join('/');
-    videoEl.src = `${safeBaseUrl}/${encodedPath}`;
+    const normalizedPath = filepath.replace(/\\/g, '/');
+    videoEl.src = `${backendUrl}/${normalizedPath}`;
     videoEl.onloadedmetadata = () => {
       const seconds = Math.floor(videoEl.duration);
       const hrs = Math.floor(seconds / 3600);
@@ -57,12 +55,7 @@ export default function RelatedVideos({ videos }: RelatedVideosProps) {
         >
           <div className="relative w-40 aspect-video bg-gray-100 rounded overflow-hidden flex-shrink-0">
             <video
-              src={(() => {
-                const safeBaseUrl = backendUrl.replace(/\/$/, '');
-                const normalizedPath = video.filepath.replace(/\\/g, '/').replace(/^\//, '');
-                const encodedPath = normalizedPath.split('/').map((segment: string) => encodeURIComponent(segment)).join('/');
-                return `${safeBaseUrl}/${encodedPath}#t=1`;
-              })()}
+              src={`${backendUrl}/${video.filepath.replace(/\\/g, '/')}#t=1`}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200 pointer-events-none"
               muted
               playsInline

@@ -12,10 +12,9 @@ export default function VideoCard({ video, onEdit, onDelete }: any) {
     if (!video?.filepath) return;
 
     const videoEl = document.createElement("video");
-    const baseUrl = (process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000').replace(/\/$/, '');
-    const normalizedPath = video.filepath.replace(/\\/g, '/').replace(/^\//, '');
-    const encodedPath = normalizedPath.split('/').map((segment: string) => encodeURIComponent(segment)).join('/');
-    videoEl.src = `${baseUrl}/${encodedPath}`;
+    const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://yourtube-zg73.onrender.com';
+    const normalizedPath = video.filepath.replace(/\\/g, '/');
+    videoEl.src = `${baseUrl}/${normalizedPath}`;
 
     videoEl.onloadedmetadata = () => {
       const seconds = Math.floor(videoEl.duration);
@@ -40,12 +39,7 @@ export default function VideoCard({ video, onEdit, onDelete }: any) {
         <div className="flex flex-col gap-3 h-full">
           <div className="relative aspect-video rounded-xl overflow-hidden bg-muted group-hover:scale-105 group-hover:shadow-lg transition-all duration-300 ease-in-out border border-transparent group-hover:border-border/50">
             <video
-              src={video?.filepath ? (() => {
-                const baseUrl = (process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000').replace(/\/$/, '');
-                const normalizedPath = video.filepath.replace(/\\/g, '/').replace(/^\//, '');
-                const encodedPath = normalizedPath.split('/').map((segment: string) => encodeURIComponent(segment)).join('/');
-                return `${baseUrl}/${encodedPath}#t=1`;
-              })() : ''}
+              src={video?.filepath ? `${process.env.NEXT_PUBLIC_BACKEND_URL || 'https://yourtube-zg73.onrender.com'}/${video.filepath.replace(/\\/g, '/')}#t=1` : ''}
               className="w-full h-full object-cover"
               muted
               playsInline

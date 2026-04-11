@@ -60,7 +60,7 @@ const SearchResult = ({ query }: any) => {
       </div>
     );
   }
-  const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
+  const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://yourtube-zg73.onrender.com';
   return (
     <div className="space-y-6">
       {/* Video Results */}
@@ -71,12 +71,7 @@ const SearchResult = ({ query }: any) => {
               <Link href={`/watch/${video._id}`} className="flex-shrink-0">
                 <div className="relative w-80 aspect-video bg-muted rounded-lg overflow-hidden">
                   <video
-                    src={video?.filepath ? (() => {
-                      const safeBaseUrl = baseUrl.replace(/\/$/, '');
-                      const normalizedPath = video.filepath.replace(/\\/g, '/').replace(/^\//, '');
-                      const encodedPath = normalizedPath.split('/').map((segment: string) => encodeURIComponent(segment)).join('/');
-                      return `${safeBaseUrl}/${encodedPath}#t=1`;
-                    })() : ''}
+                    src={video?.filepath ? `${baseUrl}/${video.filepath.replace(/\\/g, '/')}#t=1` : ''}
                     className="object-cover group-hover:scale-105 transition-transform duration-200"
                   />
                   <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-1 rounded">

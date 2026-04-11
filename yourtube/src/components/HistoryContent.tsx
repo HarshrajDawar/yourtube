@@ -92,7 +92,7 @@ export default function HistoryContent() {
       <Link href={`/watch/${item.videoid?._id}`} className="flex-shrink-0">
         <div className="relative w-40 aspect-video bg-gray-100 rounded overflow-hidden">
           <video
-            src={`${process.env.BACKEND_URL}/${item.videoid?.filepath}`}
+            src={item.videoid?.filepath ? `${process.env.NEXT_PUBLIC_BACKEND_URL || 'https://yourtube-zg73.onrender.com'}/${item.videoid.filepath.replace(/\\/g, '/')}` : ''}
             className="w-full h-full object-cover"
           />
         </div>

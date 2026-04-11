@@ -53,7 +53,6 @@ const VideoUploader = ({ channelId: propId, channelName: propName }: any) => {
     if (isUploading) {
       toast.error("Your video upload has been cancelled");
     }
-    resetForm();
   };
   const handleUpload = async () => {
     if (!videoFile || !videoTitle.trim()) {
@@ -91,25 +90,23 @@ const VideoUploader = ({ channelId: propId, channelName: propName }: any) => {
     }
   };
   return (
-    <div className="bg-muted/20 rounded-xl p-4 sm:p-8 border border-border/50 w-full max-w-full overflow-hidden mb-8">
-      <h2 className="text-xl font-bold mb-6 text-foreground">Upload a video</h2>
+    <div className="bg-gray-50 rounded-lg p-6">
+      <h2 className="text-xl font-semibold mb-4">Upload a video</h2>
 
       <div className="space-y-4">
         {!videoFile ? (
           <div
-            className="border-2 border-dashed border-border/60 hover:border-primary/50 rounded-xl p-6 sm:p-12 text-center cursor-pointer bg-muted/20 hover:bg-muted/40 transition-all duration-300 group"
+            className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:bg-gray-100 transition-colors"
             onClick={() => fileInputRef.current?.click()}
           >
-            <div className="bg-primary/5 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
-              <Upload className="w-8 h-8 text-muted-foreground group-hover:text-primary transition-colors" />
-            </div>
-            <p className="text-lg font-bold text-foreground">
+            <Upload className="w-12 h-12 mx-auto text-gray-400 mb-2" />
+            <p className="text-lg font-medium">
               Drag and drop video files to upload
             </p>
-            <p className="text-sm text-muted-foreground mt-1 font-medium">
+            <p className="text-sm text-gray-500 mt-1">
               or click to select files
             </p>
-            <p className="text-xs text-muted-foreground mt-4 font-medium">
+            <p className="text-xs text-gray-400 mt-4">
               MP4, WebM, MOV or AVI • Up to 100MB
             </p>
             <input
@@ -121,54 +118,54 @@ const VideoUploader = ({ channelId: propId, channelName: propName }: any) => {
             />
           </div>
         ) : (
-           <div className="grid gap-6">
-              <div className="flex items-center gap-4 p-4 bg-secondary/30 rounded-xl border border-border/50">
-              <div className="bg-primary/10 p-2.5 rounded-lg">
-                <FileVideo className="w-6 h-6 text-primary" />
+            <div className="grid gap-6">
+              <div className="flex items-center gap-4 p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
+              <div className="bg-blue-100 p-2 rounded-md">
+                <FileVideo className="w-6 h-6 text-blue-600" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-bold truncate text-foreground">{videoFile.name}</p>
-                <p className="text-sm text-muted-foreground font-medium">
+                <p className="font-medium truncate">{videoFile.name}</p>
+                <p className="text-sm text-gray-500">
                   {(videoFile.size / (1024 * 1024)).toFixed(2)} MB
                 </p>
               </div>
               {!isUploading && (
-                <Button variant="ghost" size="icon" onClick={cancelUpload} className="rounded-full hover:bg-destructive/10 hover:text-destructive">
+                <Button variant="ghost" size="icon" onClick={cancelUpload}>
                   <X className="w-5 h-5" />
                 </Button>
               )}
               {uploadComplete && (
-                <div className="bg-green-500/10 p-1.5 rounded-full">
+                <div className="bg-green-100 p-1 rounded-full">
                   <Check className="w-5 h-5 text-green-600" />
                 </div>
               )}
             </div>
 
-            <div className="grid gap-5 py-4 overflow-y-auto max-h-[70vh] sm:max-h-[80vh] px-1 pb-10 sm:pb-4">
+            <div className="grid gap-5">
               <div className="flex flex-col gap-2">
-                <Label htmlFor="title" className="text-sm font-bold text-foreground">Title (required)</Label>
+                <Label htmlFor="title" className="text-sm font-semibold">Title (required)</Label>
                 <Input
                   id="title"
                   value={videoTitle}
                   onChange={(e) => setVideoTitle(e.target.value)}
                   placeholder="Add a title that describes your video"
                   disabled={isUploading || uploadComplete}
-                  className="mt-1 bg-background border-border/50"
+                  className="mt-1 bg-white"
                 />
               </div>
 
-                <div className="flex flex-col gap-2">
-                  <Label htmlFor="description" className="text-sm font-bold text-foreground">Description</Label>
-                  <textarea
-                    id="description"
-                    value={videoDescription}
-                    onChange={(e) => setVideoDescription(e.target.value)}
-                    placeholder="Enter video description"
-                    disabled={isUploading || uploadComplete}
-                    className="w-full h-24 sm:h-32 mt-1 p-3 rounded-md border border-border/50 bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all resize-none relative z-10 font-medium"
-                  />
-                </div>
-           </div>
+              <div className="flex flex-col gap-2 relative">
+                <Label htmlFor="description" className="text-sm font-semibold">Description</Label>
+                <textarea
+                  id="description"
+                  value={videoDescription}
+                  onChange={(e) => setVideoDescription(e.target.value)}
+                  placeholder="Enter video description"
+                  disabled={isUploading || uploadComplete}
+                  className="w-full h-32 mt-1 p-3 rounded-md border border-gray-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all resize-none relative z-10"
+                />
+              </div>
+            </div>
 
             {isUploading && (
               <div className="space-y-2">
@@ -180,15 +177,10 @@ const VideoUploader = ({ channelId: propId, channelName: propName }: any) => {
               </div>
             )}
 
-            <div className="flex justify-end gap-3 pt-6 border-t border-border/50 bg-background/80 backdrop-blur-sm sticky bottom-0 z-20 pb-2">
+            <div className="flex justify-end gap-3">
               {!uploadComplete && (
                 <>
-                  <Button 
-                    variant="ghost" 
-                    onClick={cancelUpload} 
-                    disabled={uploadComplete || isUploading}
-                    className="font-bold hover:bg-secondary"
-                  >
+                  <Button onClick={cancelUpload} disabled={uploadComplete}>
                     Cancel
                   </Button>
                   <Button
@@ -196,9 +188,8 @@ const VideoUploader = ({ channelId: propId, channelName: propName }: any) => {
                     disabled={
                       isUploading || !videoTitle.trim() || uploadComplete
                     }
-                    className="px-8 font-bold bg-primary text-primary-foreground hover:opacity-90 transition-opacity rounded-full shadow-lg"
                   >
-                    {isUploading ? "Uploading..." : "Save Now"}
+                    {isUploading ? "Uploading..." : "Upload"}
                   </Button>
                 </>
               )}

@@ -231,14 +231,14 @@ export default function VideoPlayer({ video }: VideoPlayerProps) {
     if (container) {
       if (document.fullscreenElement) {
         document.exitFullscreen();
-        if (typeof screen !== "undefined" && screen.orientation && 'unlock' in screen.orientation) {
-          (screen.orientation as any).unlock();
+        if (screen.orientation && 'unlock' in screen.orientation) {
+          screen.orientation.unlock();
         }
       } else {
         container.requestFullscreen().then(() => {
           // Auto-rotate on mobile
-          if (typeof screen !== "undefined" && screen.orientation && 'lock' in screen.orientation) {
-            (screen.orientation as any).lock('landscape').catch((err: any) => {
+          if (screen.orientation && 'lock' in screen.orientation) {
+            screen.orientation.lock('landscape').catch(err => {
               console.log("Orientation lock not supported or failed:", err);
             });
           }
@@ -253,6 +253,19 @@ export default function VideoPlayer({ video }: VideoPlayerProps) {
     controlsTimeout.current = setTimeout(() => setShowControls(false), 3000);
   };
 
+  const backendUrl = (process.env.NEXT_PUBLIC_BACKEND_URL || 'https://yourtube-zg73.onrender.com').replace(/\/$/, '');
+  const videoSrc = video?.filepath 
+    ? `${backendUrl}/${video.filepath.replace(/\\/g, '/').replace(/^\//, '')}`
+    : '';
+
+  useEffect(() => {
+    console.log("Video source calculated:", videoSrc);
+    fetch(`${backendUrl}/`)
+      .then(r => r.text())
+      .then(t => console.log("Backend connectivity check:", t))
+      .catch(e => console.error("Backend connectivity check FAILED:", e));
+  }, [videoSrc, backendUrl]);
+
   return (
     <div 
       className="aspect-video bg-black rounded-lg overflow-hidden relative group/player shadow-2xl"
@@ -265,17 +278,16 @@ export default function VideoPlayer({ video }: VideoPlayerProps) {
         ref={videoRef}
         autoPlay
         playsInline
+        crossOrigin="anonymous"
         disablePictureInPicture
         controlsList="nopictureinpicture"
         onContextMenu={(e) => e.preventDefault()}
         className="w-full h-full cursor-pointer"
         poster="https://images.unsplash.com/photo-1611162617474-5b21e879e113?q=80&w=1074&auto=format&fit=crop"
-        src={video?.filepath ? (() => {
-          const baseUrl = (process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000').replace(/\/$/, '');
-          const normalizedPath = video.filepath.replace(/\\/g, '/').replace(/^\//, '');
-          const encodedPath = normalizedPath.split('/').map((segment: string) => encodeURIComponent(segment)).join('/');
-          return `${baseUrl}/${encodedPath}`;
-        })() : ''}
+        src={videoSrc}
+        onLoadStart={(e) => {
+          console.log("Video Load Start. Src:", e.currentTarget.src);
+        }}
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
         onError={(e) => {

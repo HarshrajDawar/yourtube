@@ -17,7 +17,21 @@ export const UserProvider = ({ children }) => {
   const [otpMethod, setOtpMethod] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Theme logic moved to useDynamicTheme.ts to prevent conflicts and ensure consistent next-themes usage.
+  const applyTheme = () => {
+    if (typeof window === "undefined") return;
+    
+    const hour = new Date().getHours();
+    const isSouthIndia = SOUTH_INDIAN_STATES.includes(userState);
+    const isSpecialTime = hour >= 10 && hour < 12;
+
+    console.log(`THEME CHECK: State=${userState}, Time=${hour}h, SouthIndia=${isSouthIndia}, Target=${(isSouthIndia && isSpecialTime) ? 'Light' : 'Dark'}`);
+
+    if (isSouthIndia && isSpecialTime) {
+      document.documentElement.classList.remove("dark");
+    } else {
+      document.documentElement.classList.add("dark");
+    }
+  };
 
   useEffect(() => {
     const savedState = localStorage.getItem("userState");
@@ -25,9 +39,16 @@ export const UserProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
+    applyTheme();
+    
+    // Set interval to check theme every minute in case time passes 10am/12pm while on page
+    const interval = setInterval(applyTheme, 60000);
+    
     if (userState !== "Unknown") {
       localStorage.setItem("userState", userState);
     }
+    
+    return () => clearInterval(interval);
   }, [userState]);
 
   const login = (userdata) => {

@@ -111,17 +111,15 @@ const HeaderUploader = ({ channelId: propId, channelName: propName }: any) => {
           <DialogTitle>Upload a video</DialogTitle>
         </DialogHeader>
 
-        <div className="grid gap-5 py-4 overflow-y-auto max-h-[70vh] sm:max-h-[80vh] px-1 pb-12 sm:pb-4">
+        <div className="grid gap-5 py-4 overflow-y-auto max-h-[80vh] px-1">
           {!videoFile ? (
             <div
-              className="border-2 border-dashed border-border/60 hover:border-primary/50 rounded-xl p-6 sm:p-12 text-center cursor-pointer bg-muted/20 hover:bg-muted/40 transition-all duration-300 group"
+              className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:bg-gray-50 transition-colors"
               onClick={() => fileInputRef.current?.click()}
             >
-              <div className="bg-primary/5 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
-                <Upload className="w-8 h-8 text-muted-foreground group-hover:text-primary transition-colors" />
-              </div>
-              <p className="text-sm font-bold text-foreground">Click to select or drag and drop</p>
-              <p className="text-xs text-muted-foreground mt-2 font-medium">MP4, WebM up to 100MB</p>
+              <Upload className="w-12 h-12 mx-auto text-gray-400 mb-2" />
+              <p className="text-sm font-medium">Click to select or drag and drop</p>
+              <p className="text-xs text-gray-400 mt-2">MP4, WebM up to 100MB</p>
               <input
                 type="file"
                 ref={fileInputRef}
@@ -131,7 +129,7 @@ const HeaderUploader = ({ channelId: propId, channelName: propName }: any) => {
               />
             </div>
           ) : (
-           <div className="grid gap-5">
+            <div className="grid gap-5">
               <div className="flex items-center gap-3 p-4 bg-secondary/20 rounded-xl border border-border/50">
                 <FileVideo className="w-6 h-6 text-blue-600" />
                 <div className="flex-1 min-w-0">
@@ -181,30 +179,19 @@ const HeaderUploader = ({ channelId: propId, channelName: propName }: any) => {
                 </div>
               )}
 
-              <div className="flex justify-end gap-3 pt-6 border-t border-border/50">
+              <div className="flex justify-end gap-2">
                 {!uploadComplete && (
                   <>
-                    <Button 
-                      type="button"
-                      variant="ghost" 
-                      onClick={() => { setOpen(false); resetForm(); }} 
-                      disabled={isUploading}
-                      className="font-bold hover:bg-secondary"
-                    >
+                    <Button variant="outline" onClick={() => setOpen(false)} disabled={isUploading}>
                       Cancel
                     </Button>
-                    <Button 
-                      type="button"
-                      onClick={handleUpload} 
-                      disabled={isUploading || !videoTitle.trim()}
-                      className="px-8 font-bold bg-primary text-primary-foreground hover:opacity-90 transition-opacity rounded-full"
-                    >
-                      {isUploading ? "Uploading..." : "Publish"}
+                    <Button onClick={handleUpload} disabled={isUploading || !videoTitle.trim()}>
+                      {isUploading ? "Uploading..." : "Save"}
                     </Button>
                   </>
                 )}
               </div>
-           </div>
+            </div>
           )}
         </div>
       </DialogContent>
