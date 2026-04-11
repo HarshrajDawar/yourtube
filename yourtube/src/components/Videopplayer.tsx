@@ -232,13 +232,13 @@ export default function VideoPlayer({ video }: VideoPlayerProps) {
       if (document.fullscreenElement) {
         document.exitFullscreen();
         if (screen.orientation && 'unlock' in screen.orientation) {
-          screen.orientation.unlock();
+          (screen.orientation as any).unlock();
         }
       } else {
         container.requestFullscreen().then(() => {
           // Auto-rotate on mobile
           if (screen.orientation && 'lock' in screen.orientation) {
-            screen.orientation.lock('landscape').catch(err => {
+            (screen.orientation as any).lock('landscape').catch((err: any) => {
               console.log("Orientation lock not supported or failed:", err);
             });
           }
