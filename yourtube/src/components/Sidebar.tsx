@@ -9,6 +9,7 @@ import {
   Download,
   Crown,
   Video,
+  UserPlus,
 } from "lucide-react";
 import Link from "next/link";
 import React, { useState, useEffect } from "react";
@@ -26,10 +27,32 @@ interface SidebarProps {
 const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
   const { user } = useUser();
   const router = useRouter();
+  const [isVisible, setIsVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
 
   const isActive = (path: string) => router.pathname === path;
 
   const [isdialogeopen, setisdialogeopen] = useState(false);
+
+  // Hide on scroll logic for mobile
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.innerWidth < 768) {
+        const currentScrollY = window.scrollY;
+        if (currentScrollY > lastScrollY && currentScrollY > 50) {
+          setIsVisible(false);
+        } else {
+          setIsVisible(true);
+        }
+        setLastScrollY(currentScrollY);
+      } else {
+        setIsVisible(true);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [lastScrollY]);
 
   // Close sidebar on route change (mobile)
   useEffect(() => {
@@ -59,83 +82,122 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
 
   return (
     <>
-      {/* Mobile Overlay */}
+      {/* Backdrop for mobile */}
       {isOpen && (
         <div 
-          className="fixed inset-0 bg-black/40 z-[60] lg:hidden transition-opacity duration-300"
+          className="fixed inset-0 bg-black/50 z-[40] md:hidden backdrop-blur-sm transition-opacity duration-300"
           onClick={onClose}
         />
       )}
-
       <aside className={`
-        fixed lg:sticky top-[56px] left-0 h-[calc(100vh-56px)] 
-        w-64 bg-background border-r border-border p-3 z-[70] lg:z-40
-        transition-transform duration-300 ease-in-out
-        ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0 lg:hidden"}
-        ${!isOpen && "lg:w-0 lg:p-0 lg:border-none overflow-hidden"}
+        fixed md:sticky top-[56px] left-0 h-[calc(100vh-56px)] 
+        bg-background/95 backdrop-blur-md border-r border-border p-3 z-[45]
+        transition-all duration-300 ease-in-out flex-shrink-0
+        ${isOpen 
+          ? "w-[72px] md:w-[240px] translate-x-0" 
+          : "w-0 md:w-[72px] -translate-x-full md:translate-x-0 overflow-hidden md:overflow-visible"
+        }
+        shadow-2xl md:shadow-none
       `}>
-      <nav className="space-y-1">
+      <nav className="space-y-4 md:space-y-1">
         {sidebarItems.map((item) => (
           <Link href={item.path} key={item.path}>
             <Button 
               variant="ghost" 
-              className={`w-full justify-start gap-4 h-10 px-3 rounded-lg transition-all duration-300 group relative
+              className={`w-full h-11 md:h-10 px-3 rounded-xl md:rounded-lg transition-all duration-300 group relative flex items-center
+                ${isOpen ? "justify-center md:justify-start gap-0 md:gap-4" : "justify-center gap-0"}
                 ${isActive(item.path) 
-                  ? "bg-white text-zinc-950 font-black shadow-lg border border-black/10 ring-1 ring-black/5" 
-                  : "hover:bg-gray-100/80 hover:scale-[1.02] text-muted-foreground hover:text-foreground active:scale-95"}
+                  ? "bg-secondary text-foreground font-bold shadow-sm" 
+                  : "hover:bg-secondary/80 text-muted-foreground hover:text-foreground active:scale-95"}
               `}
               title={item.label}
             >
-              <span className={`transition-all duration-300 ${isActive(item.path) ? "text-red-600 scale-110" : "group-hover:scale-110 group-hover:text-red-600"}`}>
+              <span className={`transition-all duration-300 flex-shrink-0 ${isActive(item.path) ? "text-primary scale-110" : "group-hover:scale-110 group-hover:text-primary"}`}>
                 {item.icon}
               </span>
-              <span className="text-[14px] tracking-tight">{item.label}</span>
-              {isActive(item.path) && <div className="absolute right-3 w-2 h-2 bg-red-600 rounded-full animate-pulse shadow-[0_0_10px_rgba(220,38,38,0.5)]" />}
+              <span className={`
+                text-[14px] tracking-tight truncate transition-all duration-500 hidden md:block
+                ${isOpen ? "opacity-100 flex-1 text-left ml-4" : "opacity-0 w-0 h-0 overflow-hidden"}
+              `}>
+                {item.label}
+              </span>
+              {isOpen && isActive(item.path) && (
+                <div className="absolute right-3 w-2 h-2 bg-red-600 rounded-full animate-pulse shadow-[0_0_10px_rgba(220,38,38,0.5)] hidden lg:block" />
+              )}
             </Button>
           </Link>
         ))}
 
         {user && (
-          <div className="border-t border-border mt-3 pt-3 space-y-1">
-            <h3 className="px-4 py-2 text-[11px] font-black text-muted-foreground/60 uppercase tracking-widest">You</h3>
+          <div className={`mt-6 pt-6 md:mt-3 md:pt-3 space-y-4 md:space-y-1 ${isOpen ? "border-t md:border-t-0 lg:border-t border-border" : ""}`}>
+            <h3 className={`
+              px-4 py-2 text-[11px] font-black text-muted-foreground/60 uppercase tracking-widest truncate
+              ${isOpen ? "block md:hidden lg:block" : "hidden"}
+            `}>
+              You
+            </h3>
             {userItems.map((item) => (
               <Link href={item.path} key={item.path}>
                 <Button 
                   variant="ghost" 
-                  className={`w-full justify-start gap-4 h-10 px-3 rounded-lg transition-all duration-300 group relative
+                  className={`w-full h-11 md:h-10 px-3 rounded-xl md:rounded-lg transition-all duration-300 group relative flex items-center
+                    ${isOpen ? "justify-center md:justify-start gap-0 md:gap-4" : "justify-center gap-0"}
                     ${isActive(item.path) 
-                      ? "bg-white text-zinc-950 font-black shadow-lg border border-black/10 ring-1 ring-black/5" 
-                      : "hover:bg-gray-100/80 hover:scale-[1.02] text-muted-foreground hover:text-foreground active:scale-95"}
+                      ? "bg-secondary text-foreground font-bold shadow-sm" 
+                      : "hover:bg-secondary/80 text-muted-foreground hover:text-foreground active:scale-95"}
                   `}
                   title={item.label}
                 >
-                  <span className={`transition-all duration-300 ${isActive(item.path) ? "text-red-600 scale-110" : "group-hover:scale-110 group-hover:text-red-600"}`}>
+                  <span className={`transition-all duration-300 flex-shrink-0 ${isActive(item.path) ? "text-primary scale-110" : "group-hover:scale-110 group-hover:text-primary"}`}>
                     {item.icon}
                   </span>
-                  <span className="text-[14px] tracking-tight">{item.label}</span>
-                  {isActive(item.path) && <div className="absolute right-3 w-2 h-2 bg-red-600 rounded-full animate-pulse shadow-[0_0_10px_rgba(220,38,38,0.5)]" />}
+                  <span className={`
+                    text-[14px] tracking-tight truncate transition-all duration-500 hidden md:block
+                    ${isOpen ? "opacity-100 flex-1 text-left ml-4" : "opacity-0 w-0 h-0 overflow-hidden"}
+                  `}>
+                    {item.label}
+                  </span>
                 </Button>
               </Link>
             ))}
 
             {user?.channelname ? (
               <Link href={`/channel/${user._id}`}>
-                <Button variant="ghost" className="w-full justify-start gap-4 h-10 px-3 rounded-lg hover:bg-gray-100 hover:scale-[1.02] transition-all text-muted-foreground hover:text-foreground group">
-                  <User className="w-5 h-5 shadow-sm group-hover:text-red-600 transition-colors" />
-                  <span className="text-[14px] font-medium">Your channel</span>
+                <Button 
+                  variant="ghost" 
+                  className={`w-full h-11 md:h-10 px-3 rounded-xl md:rounded-lg hover:bg-secondary/80 hover:scale-[1.02] transition-all text-muted-foreground hover:text-foreground group flex items-center
+                    ${isOpen ? "justify-center md:justify-start gap-0 md:gap-4" : "justify-center gap-0"}
+                  `}
+                >
+                  <User className="w-5 h-5 flex-shrink-0 shadow-sm group-hover:text-primary transition-colors" />
+                  <span className={`
+                    text-[14px] font-medium truncate transition-all duration-500 hidden md:block
+                    ${isOpen ? "opacity-100 flex-1 text-left ml-4" : "opacity-0 w-0 h-0 overflow-hidden"}
+                  `}>
+                    Your channel
+                  </span>
                 </Button>
               </Link>
             ) : (
-              <div className="px-2 mt-4">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full justify-center rounded-full font-bold h-9 border hover:bg-gray-100 transition-all duration-300"
-                  onClick={() => setisdialogeopen(true)}
-                >
+              <Button 
+                variant="ghost" 
+                className={`w-full h-11 md:h-10 px-3 rounded-xl md:rounded-lg transition-all duration-300 group relative flex items-center mt-2
+                  ${isOpen ? "justify-center md:justify-start gap-0 md:gap-4" : "justify-center gap-0"}
+                  hover:bg-secondary/80 text-muted-foreground hover:text-foreground active:scale-95
+                `}
+                title="Create Channel"
+                onClick={() => setisdialogeopen(true)}
+              >
+                <span className="transition-all duration-300 flex-shrink-0 group-hover:scale-110 group-hover:text-primary">
+                  <UserPlus className="w-5 h-5" />
+                </span>
+                <span className={`
+                  text-[14px] tracking-tight truncate transition-all duration-500 hidden md:block
+                  ${isOpen ? "opacity-100 flex-1 text-left ml-4" : "opacity-0 w-0 h-0 overflow-hidden"}
+                `}>
                   Create Channel
-                </Button>
-              </div>
+                </span>
+              </Button>
             )}
           </div>
         )}

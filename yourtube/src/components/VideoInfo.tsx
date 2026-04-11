@@ -237,9 +237,9 @@ const VideoInfo = ({ video }: any) => {
         <div className="flex items-center gap-4">
           <div className="relative group cursor-pointer">
             <Avatar className="w-12 h-12 border-2 border-border shadow-sm group-hover:border-primary transition-all duration-300">
-              <AvatarFallback className="bg-primary/10 text-primary text-lg font-bold">
-                {(video.videochanel || video.uploader || "A")[0].toUpperCase()}
-              </AvatarFallback>
+              <AvatarFallback className="bg-secondary text-foreground text-lg font-black uppercase border border-border">
+              {(video.videochanel || video.uploader || "A")[0].toUpperCase()}
+            </AvatarFallback>
             </Avatar>
             <div className="absolute -bottom-1 -right-1 bg-green-500 w-3.5 h-3.5 border-2 border-background rounded-full" title="Online" />
           </div>

@@ -1,9 +1,13 @@
 import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 
+import { useUser } from "./AuthContext";
+import { toast } from "sonner";
+
 export const useDynamicTheme = () => {
   const { setTheme } = useTheme();
-  const [location, setLocation] = useState<any>(null);
+  const { userState: authState } = useUser();
+  const [ipState, setIpState] = useState<string | null>(null);
 
   useEffect(() => {
     // Comprehensive southern states list with common spelling variations
@@ -31,8 +35,9 @@ export const useDynamicTheme = () => {
 
         if (locRes.ok) {
           const locData = await locRes.json();
-          state = locData.region || "Unknown";
-          setLocation(state);
+          const region = locData.region || "Unknown";
+          state = region;
+          setIpState(region);
         } else {
           // Fallback if ipapi fails
           state = "Unknown";
@@ -46,8 +51,10 @@ export const useDynamicTheme = () => {
       }
 
       try {
+        const stateToUse = authState !== "Unknown" ? authState : state;
+        
         const isSouthern = southernStates.some(s => 
-          state.toLowerCase().includes(s.toLowerCase())
+          stateToUse.toLowerCase().includes(s.toLowerCase())
         );
         
         // 2. Get Time
@@ -56,15 +63,16 @@ export const useDynamicTheme = () => {
         // Target: 10 AM (10:00) to 12 PM (12:00)
         const isTargetTime = hour >= 10 && hour < 12;
 
-        console.log(`[DynamicTheme] State: ${state}, Southern: ${isSouthern}, Hour: ${hour}, TargetTime: ${isTargetTime}`);
-
-        // 3. Apply Logic: Southern State AND 10AM-12PM => Light Theme, else Dark
+        console.log(`[DynamicTheme] Final State: ${stateToUse}, Southern: ${isSouthern}, Hour: ${hour}, TargetTime: ${isTargetTime}`);
+        
+        let targetTheme = "dark";
         if (isSouthern && isTargetTime) {
-          setTheme("light");
-        } else {
-          setTheme("dark");
+          targetTheme = "light";
         }
+        
+        setTheme(targetTheme);
       } catch (error) {
+        console.error("[DynamicTheme] Logic error:", error);
         setTheme("dark"); 
       }
     };
@@ -72,7 +80,7 @@ export const useDynamicTheme = () => {
     checkTheme();
     const interval = setInterval(checkTheme, 600000); // Check every 10 mins
     return () => clearInterval(interval);
-  }, [setTheme]);
+  }, [setTheme, authState, ipState]);
 
-  return location;
+  return authState !== "Unknown" ? authState : ipState;
 };

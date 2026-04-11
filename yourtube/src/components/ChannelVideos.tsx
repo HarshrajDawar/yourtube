@@ -1,7 +1,7 @@
 import VideoCard from "./videocard";
 import { Edit2, Trash2 } from "lucide-react";
 import { useUser } from "@/lib/AuthContext";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import EditVideoModal from "./EditVideoModal";
 import axiosInstance from "@/lib/axiosinstance";
 import { toast } from "sonner";
@@ -11,6 +11,10 @@ export default function ChannelVideos({ videos: initialVideos }: any) {
   const router = useRouter();
   const [videos, setVideos] = useState(initialVideos || []);
   const [editingVideo, setEditingVideo] = useState<any>(null);
+
+  useEffect(() => {
+    setVideos(initialVideos || []);
+  }, [initialVideos]);
 
   if (videos.length === 0) {
     return (
@@ -40,7 +44,11 @@ export default function ChannelVideos({ videos: initialVideos }: any) {
           const isOwner = user?._id === video.uploader;
           return (
             <div key={video._id} className="flex flex-col gap-2 relative group">
-              <VideoCard video={video} />
+              <VideoCard 
+                video={video} 
+                onEdit={isOwner ? () => setEditingVideo(video) : undefined}
+                onDelete={isOwner ? () => handleDelete(video._id) : undefined}
+              />
             </div>
           );
         })}

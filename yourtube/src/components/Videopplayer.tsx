@@ -36,7 +36,9 @@ export default function VideoPlayer({ video }: VideoPlayerProps) {
   const [playbackRate, setPlaybackRate] = useState(1);
   const [showControls, setShowControls] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showSpeedMenu, setShowSpeedMenu] = useState(false);
   const [showRemaining, setShowRemaining] = useState(false);
+  const [quality, setQuality] = useState("1080p");
   const controlsTimeout = useRef<NodeJS.Timeout | null>(null);
 
   const formatTime = (time: number) => {
@@ -137,7 +139,9 @@ export default function VideoPlayer({ video }: VideoPlayerProps) {
       // Single tap in middle: Pause/Play
       if (x > width / 3 && x < (2 * width) / 3) {
         if (videoRef.current.paused) {
-          videoRef.current.play();
+          videoRef.current.play().catch(err => {
+            console.error("Play failed:", err);
+          });
           setIsPlaying(true);
           triggerOverlay('play', 'center');
         } else {
@@ -227,8 +231,18 @@ export default function VideoPlayer({ video }: VideoPlayerProps) {
     if (container) {
       if (document.fullscreenElement) {
         document.exitFullscreen();
+        if (screen.orientation && 'unlock' in screen.orientation) {
+          screen.orientation.unlock();
+        }
       } else {
-        container.requestFullscreen();
+        container.requestFullscreen().then(() => {
+          // Auto-rotate on mobile
+          if (screen.orientation && 'lock' in screen.orientation) {
+            screen.orientation.lock('landscape').catch(err => {
+              console.log("Orientation lock not supported or failed:", err);
+            });
+          }
+        });
       }
     }
   };
@@ -255,10 +269,22 @@ export default function VideoPlayer({ video }: VideoPlayerProps) {
         controlsList="nopictureinpicture"
         onContextMenu={(e) => e.preventDefault()}
         className="w-full h-full cursor-pointer"
-        poster={`/placeholder.svg?height=480&width=854`}
-        src={`${process.env.BACKEND_URL || process.env.NEXT_PUBLIC_BACKEND_URL || 'https://yourtube-zg73.onrender.com'}/${video?.filepath}`}
+        poster="https://images.unsplash.com/photo-1611162617474-5b21e879e113?q=80&w=1074&auto=format&fit=crop"
+        src={video?.filepath ? (() => {
+          const baseUrl = (process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000').replace(/\/$/, '');
+          const normalizedPath = video.filepath.replace(/\\/g, '/').replace(/^\//, '');
+          const encodedPath = normalizedPath.split('/').map(segment => encodeURIComponent(segment)).join('/');
+          return `${baseUrl}/${encodedPath}`;
+        })() : ''}
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
+        onError={(e) => {
+           console.error("Video element error:", e);
+           const videoElement = e.currentTarget;
+           if (videoElement.error) {
+             console.error("Detailed error:", videoElement.error.code, videoElement.error.message);
+           }
+        }}
         onLoadedMetadata={() => setDuration(videoRef.current?.duration || 0)}
       >
         Your browser does not support the video tag.
@@ -295,7 +321,7 @@ export default function VideoPlayer({ video }: VideoPlayerProps) {
               onClick={(e) => {
                 e.stopPropagation();
                 if (isPlaying) videoRef.current?.pause();
-                else videoRef.current?.play();
+                else videoRef.current?.play()?.catch(err => console.error("Controls Play failed:", err));
               }}
               className="text-white/90 hover:scale-110 hover:text-white transition-all"
             >
@@ -334,19 +360,22 @@ export default function VideoPlayer({ video }: VideoPlayerProps) {
             </span>
           </div>
 
-          <div className="flex items-center gap-4 relative">
-            <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2">
+            {/* Speed Control */}
+            <div className="relative">
               <button 
                 onClick={(e) => {
                   e.stopPropagation();
-                  setShowSettings(!showSettings);
+                  setShowSpeedMenu(!showSpeedMenu);
+                  setShowSettings(false);
                 }}
-                className="text-white/70 hover:text-white transition-colors p-1"
+                className={`text-white/70 hover:text-white transition-colors p-1.5 rounded-full hover:bg-white/10 ${showSpeedMenu ? 'bg-white/20 text-white' : ''}`}
+                title="Playback Speed"
               >
-                <MoreVertical className="w-4 h-4" />
+                <Clock className="w-4 h-4" />
               </button>
 
-              {showSettings && (
+              {showSpeedMenu && (
                 <div 
                   className="absolute bottom-full right-0 mb-4 bg-black/95 backdrop-blur-2xl border border-white/10 rounded-xl p-1.5 w-28 shadow-2xl animate-in slide-in-from-bottom-2 duration-200"
                   onClick={(e) => e.stopPropagation()}
@@ -355,7 +384,10 @@ export default function VideoPlayer({ video }: VideoPlayerProps) {
                   {[0.5, 1, 1.25, 1.5, 2].map((rate) => (
                     <button
                       key={rate}
-                      onClick={() => changePlaybackRate(rate)}
+                      onClick={() => {
+                        changePlaybackRate(rate);
+                        setShowSpeedMenu(false);
+                      }}
                       className={`w-full text-left px-2 py-1 rounded-lg text-[10px] font-bold transition-colors ${playbackRate === rate ? 'bg-red-600/90 text-white' : 'text-white/60 hover:bg-white/10 hover:text-white'}`}
                     >
                       {rate === 1 ? 'Normal' : `${rate}x`}
@@ -365,7 +397,44 @@ export default function VideoPlayer({ video }: VideoPlayerProps) {
               )}
             </div>
 
-            <button onClick={(e) => { e.stopPropagation(); toggleFullscreen(); }} className="text-white/70 hover:text-white transition-transform">
+            {/* Quality Control */}
+            <div className="relative">
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowSettings(!showSettings);
+                  setShowSpeedMenu(false);
+                }}
+                className={`text-white/70 hover:text-white transition-colors p-1.5 rounded-full hover:bg-white/10 ${showSettings ? 'bg-white/20 text-white' : ''}`}
+                title="Quality"
+              >
+                <MoreVertical className="w-4 h-4" />
+              </button>
+
+              {showSettings && (
+                <div 
+                  className="absolute bottom-full right-0 mb-4 bg-black/95 backdrop-blur-2xl border border-white/10 rounded-xl p-1.5 w-28 shadow-2xl animate-in slide-in-from-bottom-2 duration-200"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <p className="text-[9px] font-black text-white/40 uppercase tracking-widest px-2 py-1 mb-1">Quality</p>
+                  {['1080p', '720p', '480p', '360p'].map((q) => (
+                    <button
+                      key={q}
+                      onClick={() => {
+                        setQuality(q);
+                        setShowSettings(false);
+                        toast.success(`Quality: ${q}`);
+                      }}
+                      className={`w-full text-left px-2 py-1 rounded-lg text-[10px] font-bold transition-colors ${quality === q ? 'bg-red-600/90 text-white' : 'text-white/60 hover:bg-white/10 hover:text-white'}`}
+                    >
+                      {q}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <button onClick={(e) => { e.stopPropagation(); toggleFullscreen(); }} className="text-white/70 hover:text-white transition-transform p-1">
               <Maximize className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -423,42 +492,42 @@ export default function VideoPlayer({ video }: VideoPlayerProps) {
 
       {/* Limit Reached Modal */}
       {showLimitModal && (
-        <div className="absolute inset-0 flex items-center justify-center animate-in fade-in duration-300">
+        <div className="fixed inset-0 flex items-center justify-center z-[999] animate-in fade-in duration-300 px-4">
           {/* Backdrop/Overlay */}
-          <div className="absolute inset-0 z-40 bg-black/40 transition-opacity" />
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[-1]" onClick={(e) => e.stopPropagation()} />
           
           {/* Modal Container */}
-          <div className="relative z-50 w-full max-w-sm bg-white rounded-2xl p-8 text-center space-y-6 shadow-2xl border border-gray-100 animate-in zoom-in-95 duration-300">
+          <div className="relative w-full max-w-[340px] md:max-w-sm bg-white rounded-3xl p-6 md:p-10 text-center space-y-5 md:space-y-8 shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-white/20 animate-in zoom-in-95 duration-300">
             <div className="relative">
-              <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto relative z-10">
-                <Crown className="w-8 h-8 text-blue-600 animate-bounce" />
+              <div className="w-14 h-14 md:w-20 md:h-20 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto relative z-10 rotate-3 shadow-xl">
+                <Crown className="w-7 h-7 md:w-10 md:h-10 text-white animate-pulse" />
               </div>
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 bg-blue-100/50 blur-2xl rounded-full" />
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 md:w-32 md:h-32 bg-blue-400/30 blur-3xl rounded-full" />
             </div>
 
-            <div className="space-y-2">
-              <h2 className="text-2xl font-bold text-gray-900 leading-tight">Time's Up!</h2>
-              <p className="text-gray-600 font-medium px-4 text-sm">
-                Unlock unlimited playback for the entire month!
+            <div className="space-y-2 md:space-y-3">
+              <h2 className="text-xl md:text-3xl font-black text-gray-900 leading-tight tracking-tight">Time's Up!</h2>
+              <p className="text-gray-500 font-bold px-2 text-xs md:text-base opacity-80">
+                Unlock unlimited premium playback for the entire month!
               </p>
-              <div className="bg-blue-50 border border-blue-100 rounded-full py-2 px-4 mt-4 inline-block">
-                <span className="text-blue-700 font-bold text-[11px] uppercase tracking-wider">
-                  {user?.plan || "Free"} Plan Limit: {limitRef.current}m
+              <div className="bg-blue-50 border border-blue-100 rounded-full py-1.5 px-4 mt-2 inline-block">
+                <span className="text-blue-700 font-black text-[9px] md:text-[11px] uppercase tracking-wider">
+                  {user?.plan || "Free"} Limit Reached: {limitRef.current}m
                 </span>
               </div>
             </div>
 
-            <div className="flex flex-col gap-3 pt-4">
+            <div className="flex flex-col gap-2 md:gap-4 pt-2">
               <button 
                 onClick={(e) => {
                   e.stopPropagation();
                   router.push("/premium");
                 }}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-blue-200 transition-all text-base flex items-center justify-center gap-2 group"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-3 md:py-4 rounded-xl shadow-lg shadow-blue-500/20 transition-all text-sm md:text-lg flex items-center justify-center gap-2 group active:scale-95"
               >
                 Upgrade Now
                 <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>
               </button>
               <button 
@@ -466,7 +535,7 @@ export default function VideoPlayer({ video }: VideoPlayerProps) {
                   e.stopPropagation();
                   router.push("/");
                 }}
-                className="w-full text-gray-500 font-semibold hover:text-gray-800 hover:bg-gray-50 py-2.5 rounded-lg transition-colors text-sm"
+                className="w-full text-gray-400 font-black hover:text-gray-900 hover:bg-gray-50 py-2 rounded-xl transition-all text-[11px] md:text-sm uppercase tracking-widest"
               >
                 Maybe Later
               </button>

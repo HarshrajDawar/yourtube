@@ -7,7 +7,7 @@ const SearchResult = ({ query }: any) => {
   if (!query.trim()) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-600">
+        <p className="text-muted-foreground">
           Enter a search term to find videos and channels.
         </p>
       </div>
@@ -43,7 +43,7 @@ const SearchResult = ({ query }: any) => {
     return (
       <div className="text-center py-12">
         <h2 className="text-xl font-semibold mb-2">No results found</h2>
-        <p className="text-gray-600">
+        <p className="text-muted-foreground">
           Try different keywords or remove search filters
         </p>
       </div>
@@ -54,13 +54,13 @@ const SearchResult = ({ query }: any) => {
     return (
       <div className="text-center py-12">
         <h2 className="text-xl font-semibold mb-2">No results found</h2>
-        <p className="text-gray-600">
+        <p className="text-muted-foreground">
           Try different keywords or remove search filters
         </p>
       </div>
     );
   }
-  const vids = "/video/vdo.mp4";
+  const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
   return (
     <div className="space-y-6">
       {/* Video Results */}
@@ -71,7 +71,12 @@ const SearchResult = ({ query }: any) => {
               <Link href={`/watch/${video._id}`} className="flex-shrink-0">
                 <div className="relative w-80 aspect-video bg-muted rounded-lg overflow-hidden">
                   <video
-                    src={vids}
+                    src={video?.filepath ? (() => {
+                      const safeBaseUrl = baseUrl.replace(/\/$/, '');
+                      const normalizedPath = video.filepath.replace(/\\/g, '/').replace(/^\//, '');
+                      const encodedPath = normalizedPath.split('/').map((segment: string) => encodeURIComponent(segment)).join('/');
+                      return `${safeBaseUrl}/${encodedPath}#t=1`;
+                    })() : ''}
                     className="object-cover group-hover:scale-105 transition-transform duration-200"
                   />
                   <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-1 rounded">
@@ -100,13 +105,13 @@ const SearchResult = ({ query }: any) => {
                   className="flex items-center gap-2 mb-2 hover:text-blue-600"
                 >
                   <Avatar className="w-6 h-6">
-                    <AvatarImage src="/placeholder.svg?height=24&width=24" />
-                    <AvatarFallback className="text-xs">
+                    <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${video.videochanel}`} />
+                    <AvatarFallback className="bg-secondary text-foreground text-xs font-black uppercase border border-border">
                       {video.videochanel[0]}
                     </AvatarFallback>
                   </Avatar>
-                  <span className="text-sm text-muted-foreground">
-                    {video.videochanel}
+                  <span className="text-sm text-foreground/70 font-bold hover:text-foreground transition-colors">
+                    {video.videochanel || "Anonymous"}
                   </span>
                 </Link>
 

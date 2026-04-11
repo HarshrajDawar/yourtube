@@ -101,8 +101,8 @@ const HeaderUploader = ({ channelId: propId, channelName: propName }: any) => {
     <Dialog open={open} onOpenChange={(val) => !isUploading && setOpen(val)}>
       <DialogTrigger asChild>
         {/* यह बटन हेडर में दिखेगा */}
-        <Button variant="ghost" className="flex gap-2">
-          <Upload className="w-5 h-5" />
+        <Button variant="ghost" size="icon" className="rounded-full hover:bg-secondary hover:scale-105 transition-all h-9 w-9 sm:h-10 sm:w-10">
+          <Upload className="w-5 h-5 sm:w-6 sm:h-6" />
         </Button>
       </DialogTrigger>
       

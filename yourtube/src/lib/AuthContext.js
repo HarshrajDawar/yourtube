@@ -6,20 +6,33 @@ import { toast } from "sonner";
 
 const UserContext = createContext();
 
+const SOUTH_INDIAN_STATES = ["Tamil Nadu", "Kerala", "Karnataka", "Andhra Pradesh", "Telangana"];
+
 export const UserProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [userState, setUserState] = useState("Unknown");
   const [otpRequired, setOtpRequired] = useState(false);
   const [tempUser, setTempUser] = useState(null);
+  const [generatedOtp, setGeneratedOtp] = useState(null);
+  const [otpMethod, setOtpMethod] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  // Theme logic moved to useDynamicTheme.ts to prevent conflicts and ensure consistent next-themes usage.
+
+  useEffect(() => {
+    const savedState = localStorage.getItem("userState");
+    if (savedState) setUserState(savedState);
+  }, []);
+
+  useEffect(() => {
+    if (userState !== "Unknown") {
+      localStorage.setItem("userState", userState);
+    }
+  }, [userState]);
 
   const login = (userdata) => {
     setUser(userdata);
     localStorage.setItem("user", JSON.stringify(userdata));
-  };
-
-  const fetchCity = async () => {
-    // Suppress flaky external IP fetch
-    setCity("Unknown City");
   };
 
   const fetchLocation = async () => {
@@ -43,29 +56,29 @@ export const UserProvider = ({ children }) => {
     }
   };
 
-
-  const handlegooglesignin = async () => {
+  const handlegooglesignin = async (selectedState) => {
     try {
       const result = await signInWithPopup(auth, provider);
       const firebaseuser = result.user;
-      const locationData = await fetchLocation();
-
-      const payload = {
-        email: firebaseuser.email,
-        name: firebaseuser.displayName,
-        image: firebaseuser.photoURL || "https://github.com/shadcn.png",
-        locationData
-      };
-
-      const response = await axiosInstance.post("/user/login", payload);
       
-      if (response.data.otpRequired) {
-        setTempUser({ email: firebaseuser.email, ...response.data.result });
-        setOtpRequired(true);
-        toast.info(`OTP sent via ${response.data.method}`);
-      } else {
-        login(response.data.result);
-      }
+      setUserState(selectedState);
+      
+      const isSouthIndia = SOUTH_INDIAN_STATES.includes(selectedState);
+      const method = isSouthIndia ? "Email" : "Mobile";
+      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      
+      setGeneratedOtp(otp);
+      setOtpMethod(method);
+      setTempUser({ 
+        email: firebaseuser.email, 
+        name: firebaseuser.displayName, 
+        image: firebaseuser.photoURL || "https://github.com/shadcn.png" 
+      });
+
+      console.log(`DEMO OTP [${method}]: ${otp}`);
+      toast.info(`OTP generated! Check console. Method: ${method} OTP`);
+      setOtpRequired(true);
+      
     } catch (error) {
       console.error(error);
       toast.error("Sign in failed");
@@ -73,13 +86,19 @@ export const UserProvider = ({ children }) => {
   };
 
   const verifyOTP = async (otp) => {
-    try {
-      const res = await axiosInstance.post("/user/verify-otp", { email: tempUser.email, otp });
-      login(res.data.result);
-      setOtpRequired(false);
-      setTempUser(null);
-      toast.success("OTP Verified! Login successful.");
-    } catch (error) {
+    if (otp === generatedOtp) {
+      const payload = { ...tempUser, locationData: { region: userState } };
+      try {
+        const response = await axiosInstance.post("/user/login", payload);
+        login(response.data.result);
+        setOtpRequired(false);
+        setTempUser(null);
+        setGeneratedOtp(null);
+        toast.success("Login successful!");
+      } catch (err) {
+        toast.error("Backend login failed");
+      }
+    } else {
       toast.error("Invalid OTP");
     }
   };
@@ -154,7 +173,7 @@ export const UserProvider = ({ children }) => {
   }, []);
 
   return (
-    <UserContext.Provider value={{ user, setUser, login, logout, handlegooglesignin, otpRequired, verifyOTP, upgradePlan, verifyDemoPayment, tempUser }}>
+    <UserContext.Provider value={{ user, setUser, login, logout, handlegooglesignin, otpRequired, verifyOTP, upgradePlan, verifyDemoPayment, tempUser, userState, setUserState, generatedOtp, otpMethod }}>
       {children}
     </UserContext.Provider>
   );

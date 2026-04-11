@@ -70,10 +70,10 @@ const Comments = ({ videoId }: any) => {
   const handleSubmitComment = async () => {
     if (!user || !newComment.trim()) return;
 
-    // Task-1: Special characters validation
-    const specialChars = /[!@#$%^&*(),.?":{}|<>]/g;
-    if (specialChars.test(newComment)) {
-      toast.error("Special characters are not allowed in comments");
+    // Special characters validation policy (allow standard punctuation, block others)
+    const restrictedChars = /[#$%\^&*()_+\=\[\]{};':"\\|<>\/~]/g;
+    if (restrictedChars.test(newComment)) {
+      toast.error("Special characters (#, %, &, etc.) are not allowed in comments");
       return;
     }
 
@@ -84,11 +84,11 @@ const Comments = ({ videoId }: any) => {
         userid: user._id,
         commentbody: newComment,
         usercommented: user.name,
-        city: location.city,
+        city: location.city, // Exact city name from IP
         userState: location.state,
       });
       if (res.data.comment) {
-        toast.success("Comment added!");
+        toast.success(`Commented from ${location.city}!`);
         loadComments();
       }
       setNewComment("");
@@ -113,30 +113,42 @@ const Comments = ({ videoId }: any) => {
     if (!user) return toast.error("Please login to dislike");
     try {
       const res = await axiosInstance.patch(`/comment/dislikecomment/${id}`, { userid: user._id });
-      if (res.data.deleted) {
-        toast.info("Comment removed due to dislikes");
+      
+      // Auto-removal logic: If dislikes reach 2 or backend returns deleted
+      const updatedComments = await axiosInstance.get(`/comment/${videoId}`);
+      const targetComment = updatedComments.data.find((c: any) => c._id === id);
+      
+      if (!targetComment || targetComment.dislikes.length >= 2 || res.data.deleted) {
+        // Trigger deletion if it reaches the threshold
+        if (targetComment && targetComment.dislikes.length >= 2) {
+          try {
+            await axiosInstance.delete(`/comment/deletecomment/${id}`);
+            toast.info("Comment automatically removed (2+ dislikes)");
+          } catch (e) {
+            console.error("Auto-delete failed:", e);
+          }
+        }
         setComments((prev) => prev.filter((c) => c._id !== id));
       } else {
-        loadComments();
+        setComments(updatedComments.data);
       }
     } catch (error) {
       console.log(error);
     }
   };
 
-  const translateComment = async (comment: Comment) => {
+  const translateComment = async (comment: Comment, lang = 'en') => {
     try {
-      // For demonstration, we'll use a publicly available translation API logic or a mock.
-      // Here we use a hypothetical translation. In real life, use Google Translate API or similar.
-      const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(comment.commentbody)}&langpair=auto|en`);
+      toast.info(`Translating to ${lang === 'en' ? 'English' : 'Hindi'}...`);
+      const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(comment.commentbody)}&langpair=auto|${lang}`);
       const data = await res.json();
       const translated = data.responseData.translatedText;
       
       setComments((prev) => 
-        prev.map((c) => c._id === comment._id ? { ...c, translatedBody: translated, showTranslated: !c.showTranslated } : c)
+        prev.map((c) => c._id === comment._id ? { ...c, translatedBody: translated, showTranslated: true } : c)
       );
     } catch (error) {
-      toast.error("Translation failed");
+      toast.error("Translation service temporarily unavailable");
     }
   };
 
@@ -264,8 +276,8 @@ const Comments = ({ videoId }: any) => {
                   <span className="font-bold text-sm text-foreground hover:underline cursor-pointer">
                     {comment.usercommented || "anonymous"}
                   </span>
-                  <span className="text-xs text-muted-foreground font-medium">
-                    • {comment.userState || comment.city || "India"}
+                  <span className="flex items-center gap-1 text-xs text-muted-foreground font-medium">
+                    <MapPin className="w-3 h-3 text-red-500" /> {comment.city || "Mumbai"}
                   </span>
                   <span className="text-xs text-muted-foreground/80 font-medium ml-1">
                     {comment.commentedon ? formatDistanceToNow(new Date(comment.commentedon), { addSuffix: true }) : "recently"}
@@ -311,9 +323,11 @@ const Comments = ({ videoId }: any) => {
                         <p className="text-sm italic text-foreground/80">
                           {comment.translatedBody}
                         </p>
-                        <span className="block text-[9px] text-primary/70 font-bold mt-1 uppercase tracking-wider">
-                          Translated into English
-                        </span>
+                        <div className="flex gap-2 mt-2">
+                          <button onClick={() => translateComment(comment, 'en')} className="text-[10px] font-bold text-primary hover:underline uppercase">English</button>
+                          <button onClick={() => translateComment(comment, 'hi')} className="text-[10px] font-bold text-primary hover:underline uppercase">Hindi</button>
+                          <button onClick={() => setComments(prev => prev.map(c => c._id === comment._id ? {...c, showTranslated: false} : c))} className="text-[10px] font-bold text-muted-foreground hover:underline uppercase">Hide</button>
+                        </div>
                        </div>
                     )}
                     <div className="flex items-center gap-4 text-foreground/70">
@@ -337,10 +351,11 @@ const Comments = ({ videoId }: any) => {
                       </button>
 
                       <button 
-                        onClick={() => translateComment(comment)}
-                        className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground hover:text-primary transition-colors py-1 px-2 hover:bg-primary/5 rounded-full"
+                        onClick={() => translateComment(comment, 'en')}
+                        className="flex items-center gap-1.5 text-[11px] font-black text-foreground hover:bg-muted transition-all py-1.5 px-3 rounded-full border border-border bg-background shadow-sm hover:scale-105 active:scale-95"
                       >
-                        <Languages className="w-3.5 h-3.5" /> Translate
+                        <Languages className="w-3.5 h-3.5 text-primary" /> 
+                        <span className="uppercase tracking-tight">Translate</span>
                       </button>
                       
                       {comment.userid === user?._id && (
