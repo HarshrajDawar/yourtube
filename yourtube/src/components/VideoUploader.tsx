@@ -90,25 +90,20 @@ const VideoUploader = ({ channelId: propId, channelName: propName }: any) => {
     }
   };
   return (
-    <div className="bg-gray-50 rounded-lg p-6">
-      <h2 className="text-xl font-semibold mb-4">Upload a video</h2>
+    <div className="bg-muted/30 border border-border/50 rounded-xl p-6 shadow-sm">
+      <h2 className="text-xl font-bold mb-6">Upload New Video</h2>
 
-      <div className="space-y-4">
+      <div className="grid gap-6">
         {!videoFile ? (
           <div
-            className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:bg-gray-100 transition-colors"
+            className="border-2 border-dashed border-muted-foreground/30 rounded-xl p-12 text-center cursor-pointer hover:bg-muted/50 transition-all group"
             onClick={() => fileInputRef.current?.click()}
           >
-            <Upload className="w-12 h-12 mx-auto text-gray-400 mb-2" />
-            <p className="text-lg font-medium">
-              Drag and drop video files to upload
-            </p>
-            <p className="text-sm text-gray-500 mt-1">
-              or click to select files
-            </p>
-            <p className="text-xs text-gray-400 mt-4">
-              MP4, WebM, MOV or AVI • Up to 100MB
-            </p>
+            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+              <Upload className="w-8 h-8 text-primary" />
+            </div>
+            <p className="text-base font-semibold">Click to select or drag and drop</p>
+            <p className="text-sm text-muted-foreground mt-2">MP4, WebM up to 100MB</p>
             <input
               type="file"
               ref={fileInputRef}
@@ -118,78 +113,78 @@ const VideoUploader = ({ channelId: propId, channelName: propName }: any) => {
             />
           </div>
         ) : (
-            <div className="grid gap-6">
-              <div className="flex items-center gap-4 p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
-              <div className="bg-blue-100 p-2 rounded-md">
-                <FileVideo className="w-6 h-6 text-blue-600" />
+          <div className="grid gap-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+            <div className="flex items-center gap-4 p-4 bg-secondary/20 rounded-xl border border-border/50">
+              <div className="bg-primary/10 p-2 rounded-lg">
+                <FileVideo className="w-6 h-6 text-primary" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-medium truncate">{videoFile.name}</p>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm font-semibold truncate">{videoFile.name}</p>
+                <p className="text-xs text-muted-foreground">
                   {(videoFile.size / (1024 * 1024)).toFixed(2)} MB
                 </p>
               </div>
-              {!isUploading && (
-                <Button variant="ghost" size="icon" onClick={cancelUpload}>
-                  <X className="w-5 h-5" />
+              {!isUploading && !uploadComplete && (
+                <Button variant="ghost" size="icon" onClick={resetForm} className="hover:bg-destructive/10 hover:text-destructive">
+                  <X className="w-4 h-4" />
                 </Button>
               )}
-              {uploadComplete && (
-                <div className="bg-green-100 p-1 rounded-full">
-                  <Check className="w-5 h-5 text-green-600" />
-                </div>
-              )}
+              {uploadComplete && <Check className="w-5 h-5 text-green-600" />}
             </div>
 
-            <div className="grid gap-5">
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="title" className="text-sm font-semibold">Title (required)</Label>
+            <div className="grid gap-6">
+              <div className="space-y-2">
+                <Label htmlFor="title" className="text-sm font-bold text-muted-foreground uppercase tracking-wider">Title</Label>
                 <Input
                   id="title"
                   value={videoTitle}
                   onChange={(e) => setVideoTitle(e.target.value)}
-                  placeholder="Add a title that describes your video"
                   disabled={isUploading || uploadComplete}
-                  className="mt-1 bg-white"
+                  className="bg-background/50 border-border/50 focus:ring-primary/20 h-11"
+                  placeholder="Give your video a catchy title"
                 />
               </div>
 
-              <div className="flex flex-col gap-2 relative">
-                <Label htmlFor="description" className="text-sm font-semibold">Description</Label>
+              <div className="space-y-2">
+                <Label htmlFor="description" className="text-sm font-bold text-muted-foreground uppercase tracking-wider">Description</Label>
                 <textarea
                   id="description"
                   value={videoDescription}
                   onChange={(e) => setVideoDescription(e.target.value)}
-                  placeholder="Enter video description"
                   disabled={isUploading || uploadComplete}
-                  className="w-full h-32 mt-1 p-3 rounded-md border border-gray-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all resize-none relative z-10"
+                  className="w-full h-32 p-3 rounded-xl border border-border bg-background/50 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all resize-none"
+                  placeholder="Tell viewers about your video"
                 />
               </div>
             </div>
 
             {isUploading && (
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span>Uploading...</span>
+              <div className="space-y-3 bg-muted/20 p-4 rounded-xl border border-border/50">
+                <div className="flex justify-between text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  <span>Uploading Content...</span>
                   <span>{uploadProgress}%</span>
                 </div>
                 <Progress value={uploadProgress} className="h-2" />
               </div>
             )}
 
-            <div className="flex justify-end gap-3">
+            <div className="flex justify-end gap-3 mt-4">
               {!uploadComplete && (
                 <>
-                  <Button onClick={cancelUpload} disabled={uploadComplete}>
-                    Cancel
-                  </Button>
-                  <Button
-                    onClick={handleUpload}
-                    disabled={
-                      isUploading || !videoTitle.trim() || uploadComplete
-                    }
+                  <Button 
+                    variant="ghost" 
+                    onClick={resetForm} 
+                    disabled={isUploading}
+                    className="hover:bg-muted font-semibold"
                   >
-                    {isUploading ? "Uploading..." : "Upload"}
+                    Discard
+                  </Button>
+                  <Button 
+                    onClick={handleUpload} 
+                    disabled={isUploading || !videoTitle.trim()}
+                    className="px-8 font-bold"
+                  >
+                    {isUploading ? "Processing..." : "Publish Video"}
                   </Button>
                 </>
               )}
