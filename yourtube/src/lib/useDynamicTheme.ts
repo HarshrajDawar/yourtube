@@ -20,11 +20,30 @@ export const useDynamicTheme = () => {
     ];
     
     const checkTheme = async () => {
+      // 1. Priority: AuthContext Selected State
+      if (authState !== "Unknown") {
+        applyThemeLogic(authState);
+        return;
+      }
+
+      // 2. Secondary: Cached Location
+      const cached = localStorage.getItem('user_location_cache');
+      if (cached) {
+        try {
+          const { state: cachedState, timestamp } = JSON.parse(cached);
+          if (Date.now() - timestamp < 24 * 60 * 60 * 1000) { // 24h cache
+            applyThemeLogic(cachedState);
+            setIpState(cachedState);
+            return;
+          }
+        } catch (e) { localStorage.removeItem('user_location_cache'); }
+      }
+
+      // 3. Fallback: Network Fetch (with protection)
       let state = "Unknown";
       try {
-        // 1. Get Location with a timeout to prevent hanging
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout
+        const timeoutId = setTimeout(() => controller.abort(), 4000);
 
         const locRes = await fetch("https://ipapi.co/json/", { 
           signal: controller.signal,
@@ -35,44 +54,33 @@ export const useDynamicTheme = () => {
 
         if (locRes.ok) {
           const locData = await locRes.json();
-          const region = locData.region || "Unknown";
-          state = region;
-          setIpState(region);
-        } else {
-          // Fallback if ipapi fails
-          state = "Unknown";
+          state = locData.region || "Unknown";
+          // Cache the successful result
+          localStorage.setItem('user_location_cache', JSON.stringify({
+            state,
+            city: locData.city || "Mumbai",
+            timestamp: Date.now()
+          }));
+          setIpState(state);
         }
-      } catch (error: any) {
-        // Suppress "Failed to fetch" errors to avoid console noise
-        if (error.name !== "AbortError") {
-          console.debug("[DynamicTheme] Location fetch bypassed due to network/CORS.");
-        }
-        state = "Unknown";
+      } catch (error) {
+        console.debug("[DynamicTheme] Location fetch bypassed.");
       }
+      applyThemeLogic(state);
+    };
 
+    const applyThemeLogic = (stateToUse: string) => {
       try {
-        const stateToUse = authState !== "Unknown" ? authState : state;
-        
         const isSouthern = southernStates.some(s => 
           stateToUse.toLowerCase().includes(s.toLowerCase())
         );
         
-        // 2. Get Time
-        const now = new Date();
-        const hour = now.getHours();
-        // Target: 10 AM (10:00) to 12 PM (12:00)
+        const hour = new Date().getHours();
         const isTargetTime = hour >= 10 && hour < 12;
 
         console.log(`[DynamicTheme] Final State: ${stateToUse}, Southern: ${isSouthern}, Hour: ${hour}, TargetTime: ${isTargetTime}`);
-        
-        let targetTheme = "dark";
-        if (isSouthern && isTargetTime) {
-          targetTheme = "light";
-        }
-        
-        setTheme(targetTheme);
+        setTheme(isSouthern && isTargetTime ? "light" : "dark");
       } catch (error) {
-        console.error("[DynamicTheme] Logic error:", error);
         setTheme("dark"); 
       }
     };

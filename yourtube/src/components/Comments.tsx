@@ -39,20 +39,32 @@ const Comments = ({ videoId }: any) => {
   }, [videoId]);
 
   const fetchLocationData = async () => {
+    // 1. Check Cache first (saved by useDynamicTheme)
+    const cached = localStorage.getItem('user_location_cache');
+    if (cached) {
+      try {
+        const { city: cachedCity, state: cachedState } = JSON.parse(cached);
+        setLocation({ city: cachedCity, state: cachedState });
+        return;
+      } catch (e) { /* ignore */ }
+    }
+
+    // 2. Network Fallback
     try {
       const res = await fetch("https://ipapi.co/json/");
       if (res.ok) {
         const data = await res.json();
-        setLocation({
-          city: data.city || "Mumbai",
-          state: data.region || "Maharashtra"
-        });
-      } else {
-        throw new Error("Location service unavailable");
+        const city = data.city || "Mumbai";
+        const state = data.region || "Maharashtra";
+        setLocation({ city, state });
+        // Cache it for others to use
+        localStorage.setItem('user_location_cache', JSON.stringify({
+          city, state, timestamp: Date.now()
+        }));
       }
     } catch (error) {
-      console.warn("Location fetch blocked or failed. Using default location.");
-      setLocation({ city: "Mumbai", state: "Maharashtra" }); // Consistent fallback
+      console.debug("[Comments] Location fetch bypassed.");
+      setLocation({ city: "Mumbai", state: "Maharashtra" });
     }
   };
 
