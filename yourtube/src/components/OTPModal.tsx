@@ -3,6 +3,7 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { useUser } from "@/lib/AuthContext";
+import { toast } from "sonner";
 
 const OTPModal = () => {
   const { otpRequired, verifyOTP, tempUser, generatedOtp, otpMethod, setOtpRequired } = useUser();
