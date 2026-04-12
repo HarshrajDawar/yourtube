@@ -1,5 +1,5 @@
 import React from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "./ui/dialog";
 import { Button } from "./ui/button";
 import { useUser } from "@/lib/AuthContext";
 
@@ -33,12 +33,12 @@ const StateSelectionModal = ({ isOpen, onClose }: StateSelectionModalProps) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md bg-zinc-900 text-white border-zinc-800">
+      <DialogContent className="sm:max-w-md bg-background text-foreground border-border shadow-2xl">
         <DialogHeader>
-          <DialogTitle className="text-white">Select Your State</DialogTitle>
-          <p className="text-sm text-zinc-400">
+          <DialogTitle className="text-foreground">Select Your State</DialogTitle>
+          <DialogDescription className="text-sm text-muted-foreground">
             Please select your location to proceed with login.
-          </p>
+          </DialogDescription>
         </DialogHeader>
         <div className="flex flex-col gap-4 py-4">
           <select 

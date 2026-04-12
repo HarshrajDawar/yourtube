@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "./ui/dialog";
 import { useUser } from "@/lib/AuthContext";
 import { toast } from "sonner";
 
@@ -52,10 +52,10 @@ const OTPModal = () => {
                </div>
             </div>
 
-            <p className="text-center text-sm text-muted-foreground px-4">
+            <DialogDescription className="text-center text-sm text-muted-foreground px-4">
               We've sent a verification code to <br/>
               <span className="font-bold text-foreground inline-block mt-1">{tempUser?.email}</span>
-            </p>
+            </DialogDescription>
           </DialogHeader>
 
           <div className="flex flex-col gap-4">
