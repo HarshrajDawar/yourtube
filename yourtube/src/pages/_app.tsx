@@ -14,7 +14,11 @@ export default function App({ Component, pageProps }: AppProps) {
   return (
     <UserProvider>
       <div className="min-h-screen bg-background text-foreground transition-colors duration-300">
-        <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
+        <Script 
+          id="razorpay-checkout"
+          src="https://checkout.razorpay.com/v1/checkout.js" 
+          strategy="afterInteractive" 
+        />
         <title>Your-Tube Clone</title>
         <Header onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
         <Toaster theme="dark" position="top-center" closeButton />
