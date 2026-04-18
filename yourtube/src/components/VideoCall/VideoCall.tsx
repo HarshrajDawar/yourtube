@@ -49,7 +49,7 @@ const VideoCallComponent = () => {
   const localContainerRef = useRef<HTMLDivElement>(null);
   const remoteContainerRef = useRef<HTMLDivElement>(null);
 
-  const toggleFullScreen = (ref: React.RefObject<HTMLElement>) => {
+  const toggleFullScreen = (ref: React.RefObject<HTMLElement | null>) => {
     if (!ref.current) return;
     
     const element = ref.current;
