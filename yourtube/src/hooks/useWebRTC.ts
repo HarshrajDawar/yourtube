@@ -47,12 +47,27 @@ export const useWebRTC = (userName: string) => {
   const screenStreamRef = useRef<MediaStream | null>(null);
 
   useEffect(() => {
-    socketRef.current = io(SOCKET_URL, {
-      transports: ["websocket", "polling"]
+    console.log("Initializing Socket connection to:", SOCKET_URL);
+    
+    socketRef.current = io(SOCKET_URL as string, {
+      transports: ["websocket"],
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+    });
+
+    socketRef.current.on("connect", () => {
+      console.log("Connected to Socket Server. ID:", socketRef.current?.id);
+    });
+
+    socketRef.current.on("connect_error", (error) => {
+      console.error("Socket Connection Error:", error);
+      toast.error("Connection failed. Retrying...");
     });
 
     navigator.mediaDevices.getUserMedia({ video: true, audio: true })
       .then((currentStream) => {
+        console.log("Media stream captured successfully");
         setStream(currentStream);
         localStreamRef.current = currentStream;
       })
@@ -61,25 +76,37 @@ export const useWebRTC = (userName: string) => {
         toast.error("Please allow camera and mic permissions");
       });
 
-    socketRef.current.on("me", (id: string) => setMe(id));
+    socketRef.current.on("me", (id: string) => {
+      console.log("My Socket ID established:", id);
+      setMe(id);
+    });
+
+    socketRef.current.on("user-connected", (userId) => {
+      console.log("User connected to room:", userId);
+    });
 
     socketRef.current.on("user-joined", ({ id }) => {
-      console.log("User joined:", id);
+      console.log("Initiating call to new user:", id);
       setConnectionStatus("connecting");
       callUser(id);
     });
 
     socketRef.current.on("signal", (data) => {
+      console.log("Received signaling data from:", data.from);
       if (connectionRef.current) {
         connectionRef.current.signal(data.signal);
       } else {
-        // This person was called by the new joiner? No, usually the joiner waits.
-        // But if we get a signal and have no peer, we are the 'answerer'
         answerCall(data.from, data.signal);
       }
     });
 
+    socketRef.current.on("user-disconnected", (userId) => {
+      console.log("User disconnected from room:", userId);
+      toast.info("Participant left the meeting");
+    });
+
     socketRef.current.on("callEnded", () => {
+      console.log("Call ended by remote user");
       setCallEnded(true);
       setConnectionStatus("idle");
       if (connectionRef.current) connectionRef.current.destroy();
@@ -88,18 +115,23 @@ export const useWebRTC = (userName: string) => {
     });
 
     return () => {
+      console.log("Cleaning up WebRTC hook");
       socketRef.current?.disconnect();
       localStreamRef.current?.getTracks().forEach(t => t.stop());
     };
   }, []);
 
   const joinRoom = useCallback((roomId: string) => {
-    if (!roomId) return;
+    if (!roomId || !socketRef.current) return;
     setCurrentRoom(roomId);
-    socketRef.current?.emit("join-room", roomId);
+    
+    const userId = me || socketRef.current.id;
+    console.log(`Emitting join-room: ${roomId} for user: ${userId}`);
+    
+    socketRef.current.emit("join-room", roomId, userId);
     setConnectionStatus("connecting");
     toast.info(`Joined room: ${roomId}`);
-  }, []);
+  }, [me]);
 
   const callUser = (id: string) => {
     if (!localStreamRef.current || !Peer) return;

@@ -59,22 +59,31 @@ app.use("/comment", commentroutes);
 app.use("/premium", premiumroutes);
 
 io.on("connection", (socket) => {
+  console.log("New Socket Connection:", socket.id);
   socket.emit("me", socket.id);
 
-  socket.on("join-room", (roomId) => {
+  socket.on("join-room", (roomId, userId) => {
+    if (!roomId) return;
     socket.join(roomId);
-    console.log(`User ${socket.id} joined room ${roomId}`);
-    socket.to(roomId).emit("user-joined", { id: socket.id });
+    socket.roomId = roomId; // Store for disconnect handling
+    socket.userId = userId || socket.id;
+    
+    console.log(`User ${socket.userId} (Socket: ${socket.id}) joined room ${roomId}`);
+    
+    // Notify others in the room
+    socket.to(roomId).emit("user-connected", socket.userId);
+    socket.to(roomId).emit("user-joined", { id: socket.id }); // Legacy support
   });
 
   socket.on("signal", (data) => {
     // data contains: roomId, signal, to, from
+    console.log(`Signal from ${data.from || socket.id} to ${data.to || 'room ' + data.roomId}`);
     if (data.to) {
       io.to(data.to).emit("signal", {
         signal: data.signal,
-        from: data.from
+        from: data.from || socket.id
       });
-    } else {
+    } else if (data.roomId) {
       socket.to(data.roomId).emit("signal", {
         signal: data.signal,
         from: socket.id
@@ -82,7 +91,16 @@ io.on("connection", (socket) => {
     }
   });
 
+  socket.on("ice-candidate", (data) => {
+    console.log("Relaying ICE candidate");
+    socket.to(data.roomId).emit("ice-candidate", data.candidate);
+  });
+
   socket.on("disconnect", () => {
+    console.log("User disconnected:", socket.id);
+    if (socket.roomId) {
+      socket.to(socket.roomId).emit("user-disconnected", socket.userId || socket.id);
+    }
     socket.broadcast.emit("callEnded");
   });
 

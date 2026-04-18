@@ -307,30 +307,30 @@ export default function VideoPlayer({ video }: VideoPlayerProps) {
 
       {/* Error Overlay */}
       {videoError && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-gray-900/90 backdrop-blur-xl transition-all animate-in fade-in duration-500">
-          <div className="max-w-md p-8 bg-white/5 border border-white/10 rounded-3xl text-center space-y-6 shadow-2xl">
-            <div className="w-20 h-20 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4 border border-red-500/50">
-              <X className="w-10 h-10 text-red-500" />
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-gray-900/90 backdrop-blur-xl transition-all animate-in fade-in duration-500 overflow-hidden">
+          <div className="w-[90%] max-w-md p-4 md:p-8 bg-white/5 border border-white/10 rounded-2xl md:rounded-3xl text-center space-y-3 md:space-y-6 shadow-2xl">
+            <div className="w-12 h-12 md:w-20 md:h-20 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-2 md:mb-4 border border-red-500/50">
+              <X className="w-6 h-6 md:w-10 md:h-10 text-red-500" />
             </div>
-            <div className="space-y-2">
-              <h3 className="text-2xl font-black text-white tracking-tight">Playback Error</h3>
-              <p className="text-gray-400 font-medium">
+            <div className="space-y-1 md:space-y-2">
+              <h3 className="text-lg md:text-2xl font-black text-white tracking-tight">Playback Error</h3>
+              <p className="text-gray-400 text-xs md:text-base font-medium line-clamp-2 md:line-clamp-none">
                 {videoError.code === 4 ? "This video file is missing or in an unsupported format." : videoError.message}
               </p>
-              <div className="text-[10px] font-mono text-red-400 bg-red-400/10 px-3 py-1 rounded-full inline-block mt-2">
+              <div className="text-[8px] md:text-[10px] font-mono text-red-400 bg-red-400/10 px-2 md:px-3 py-0.5 md:py-1 rounded-full inline-block mt-1 md:mt-2">
                 Error Code: {videoError.code}
               </div>
             </div>
-            <div className="flex gap-3 pt-4">
+            <div className="flex gap-2 md:gap-3 pt-2 md:pt-4">
               <button 
                 onClick={() => window.location.reload()}
-                className="flex-1 bg-white text-black font-black py-3 rounded-xl hover:bg-gray-200 transition-all active:scale-95 shadow-lg"
+                className="flex-1 bg-white text-black text-xs md:text-base font-black py-2 md:py-3 rounded-lg md:rounded-xl hover:bg-gray-200 transition-all active:scale-95 shadow-lg"
               >
                 Retry
               </button>
               <button 
                 onClick={() => router.push('/')}
-                className="flex-1 bg-white/10 text-white font-black py-3 rounded-xl hover:bg-white/20 transition-all active:scale-95 border border-white/10"
+                className="flex-1 bg-white/10 text-white text-xs md:text-base font-black py-2 md:py-3 rounded-lg md:rounded-xl hover:bg-white/20 transition-all active:scale-95 border border-white/10"
               >
                 Go Home
               </button>

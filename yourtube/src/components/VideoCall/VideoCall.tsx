@@ -46,6 +46,25 @@ const VideoCallComponent = () => {
   
   const myVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
+  const localContainerRef = useRef<HTMLDivElement>(null);
+  const remoteContainerRef = useRef<HTMLDivElement>(null);
+
+  const toggleFullScreen = (ref: React.RefObject<HTMLElement | null>) => {
+    if (!ref || !ref.current) return;
+    
+    const element = ref.current;
+    if (document.fullscreenElement) {
+       document.exitFullscreen();
+    } else {
+       if (element.requestFullscreen) {
+         element.requestFullscreen();
+       } else if ((element as any).webkitRequestFullscreen) {
+         (element as any).webkitRequestFullscreen();
+       } else if ((element as any).msRequestFullscreen) {
+         (element as any).msRequestFullscreen();
+       }
+    }
+  };
 
   useEffect(() => {
     if (myVideoRef.current && stream) {
@@ -97,14 +116,31 @@ const VideoCallComponent = () => {
       <div className="flex-1 relative flex flex-col md:flex-row p-2 md:p-4 gap-3 md:gap-4 overflow-hidden overflow-y-auto">
         
         {/* Remote Video / Join Prompt Container */}
-        <div className="h-[45vh] md:h-full flex-1 relative bg-zinc-900/50 rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl border border-white/5 flex items-center justify-center min-h-[250px] shrink-0">
+        <div 
+          ref={remoteContainerRef}
+          onDoubleClick={() => toggleFullScreen(remoteContainerRef)}
+          className="h-[45vh] md:h-full flex-1 relative bg-zinc-900/50 rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl border border-white/5 flex items-center justify-center min-h-[250px] shrink-0"
+        >
           {callAccepted && !callEnded ? (
-            <video
-              playsInline
-              ref={remoteVideoRef}
-              autoPlay
-              className="w-full h-full object-contain"
-            />
+            <>
+              <video
+                playsInline
+                ref={remoteVideoRef}
+                autoPlay
+                className="w-full h-full object-contain pointer-events-none"
+              />
+              <div className="absolute top-4 right-4 z-30">
+                <Button 
+                  size="icon" 
+                  variant="ghost" 
+                  onClick={(e) => { e.stopPropagation(); toggleFullScreen(remoteContainerRef); }}
+                  className="h-10 w-10 md:h-12 md:w-12 rounded-full bg-black/60 backdrop-blur-xl border border-white/20 hover:bg-black/80 text-white transition-all shadow-2xl active:scale-95 flex items-center justify-center"
+                  title="Full Screen Participant"
+                >
+                  <Maximize2 className="w-5 h-5 md:w-6 md:h-6" />
+                </Button>
+              </div>
+            </>
           ) : (
             <div className="flex flex-col items-center gap-4 text-zinc-500 scale-90 md:scale-100 p-6">
                <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-zinc-800 flex items-center justify-center animate-pulse shadow-inner">
@@ -126,18 +162,22 @@ const VideoCallComponent = () => {
         </div>
 
         {/* Local Video Section */}
-        <div className={`
-          ${callAccepted && !callEnded ? 'absolute bottom-4 right-4 w-32 h-44 shadow-2xl z-20' : 'relative h-[30vh] min-h-[200px] w-full'} 
-          md:relative md:w-80 md:h-full
-          bg-zinc-900 rounded-2xl md:rounded-3xl overflow-hidden border border-white/5 transition-all duration-500 shrink-0
-        `}>
+        <div 
+          ref={localContainerRef}
+          onDoubleClick={() => toggleFullScreen(localContainerRef)}
+          className={`
+            ${callAccepted && !callEnded ? 'absolute bottom-4 right-4 w-32 h-44 shadow-2xl z-20' : 'relative h-[30vh] min-h-[200px] w-full'} 
+            md:relative md:w-80 md:h-full
+            bg-zinc-900 rounded-2xl md:rounded-3xl overflow-hidden border border-white/5 transition-all duration-500 shrink-0
+          `}
+        >
           {stream && (
             <video
               playsInline
               muted
               ref={myVideoRef}
               autoPlay
-              className={`w-full h-full object-cover transition-opacity duration-300 ${isVideoOff ? 'opacity-0' : 'opacity-100'}`}
+              className={`w-full h-full object-cover transition-opacity duration-300 pointer-events-none ${isVideoOff ? 'opacity-0' : 'opacity-100'}`}
             />
           )}
           {isVideoOff && (
@@ -154,8 +194,14 @@ const VideoCallComponent = () => {
           </div>
           
           <div className="absolute top-3 right-3 md:top-4 md:right-4">
-            <Button size="icon" variant="ghost" className="h-7 w-7 md:h-8 md:w-8 rounded-full bg-black/40 backdrop-blur-md border border-white/10 hover:bg-black/60 text-white transition-colors">
-               <Maximize2 className="w-3.5 h-3.5 md:w-4 md:h-4" />
+            <Button 
+              size="icon" 
+              variant="ghost" 
+              onClick={(e) => { e.stopPropagation(); toggleFullScreen(localContainerRef); }}
+              className="h-8 w-8 md:h-10 md:w-10 rounded-full bg-black/40 backdrop-blur-md border border-white/10 hover:bg-black/60 text-white transition-all shadow-lg active:scale-95 flex items-center justify-center"
+              title="Full Screen Your View"
+            >
+               <Maximize2 className="w-4 h-4 md:w-5 md:h-5" />
             </Button>
           </div>
         </div>
