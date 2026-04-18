@@ -254,7 +254,7 @@ export default function VideoPlayer({ video }: VideoPlayerProps) {
     controlsTimeout.current = setTimeout(() => setShowControls(false), 3000);
   };
 
-  const backendUrl = (process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000').replace(/\/$/, '');
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
   const videoSrc = video?.filepath 
     ? (video.filepath.startsWith('http') ? video.filepath : `${backendUrl}/${video.filepath.replace(/\\/g, '/').replace(/^\//, '')}`)
     : '';

@@ -171,7 +171,7 @@ const VideoInfo = ({ video }: any) => {
         toast.success("Download started on website!");
         // Simulate file download
         const link = document.createElement("a");
-        link.href = `${process.env.NEXT_PUBLIC_BACKEND_URL || 'https://yourtube-zg73.onrender.com'}/${video.filepath}`;
+        link.href = `${process.env.NEXT_PUBLIC_BACKEND_URL}/${video.filepath}`;
         link.download = video.videotitle + ".mp4";
         document.body.appendChild(link);
         link.click();

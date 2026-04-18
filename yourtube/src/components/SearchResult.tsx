@@ -60,7 +60,7 @@ const SearchResult = ({ query }: any) => {
       </div>
     );
   }
-  const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://yourtube-zg73.onrender.com';
+  const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
   return (
     <div className="space-y-6">
       {/* Video Results */}

@@ -16,7 +16,7 @@ interface RelatedVideosProps {
 
 const DurationLabel = ({ filepath }: { filepath: string }) => {
   const [duration, setDuration] = React.useState("0:00");
-  const backendUrl = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_BACKEND_URL || 'https://yourtube-zg73.onrender.com';
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
   React.useEffect(() => {
     if (!filepath) return;
@@ -44,7 +44,7 @@ const DurationLabel = ({ filepath }: { filepath: string }) => {
 };
 
 export default function RelatedVideos({ videos }: RelatedVideosProps) {
-  const backendUrl = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_BACKEND_URL || 'https://yourtube-zg73.onrender.com';
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
   return (
     <div className="space-y-2">
       {videos.map((video) => (
