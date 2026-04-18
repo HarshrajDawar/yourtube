@@ -70,8 +70,8 @@ const SearchResult = ({ query }: any) => {
             <div key={video._id} className="flex flex-col sm:flex-row gap-3 sm:gap-4 group">
               <Link href={`/watch/${video._id}`} className="flex-shrink-0 w-full sm:w-64 md:w-80">
                 <div className="relative aspect-video bg-muted rounded-xl overflow-hidden shadow-sm group-hover:shadow-md transition-all">
-                  <video
-                    src={video?.filepath ? `${baseUrl}/${video.filepath.replace(/\\/g, '/')}#t=1` : ''}
+                   <video
+                    src={video?.filepath ? encodeURI(`${baseUrl}/${video.filepath.replace(/\\/g, '/').replace(/^\//, '')}`).replace(/%5C/g, '/') + "#t=1" : ''}
                     className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500"
                   />
                   <div className="absolute bottom-2 right-2 bg-black/80 backdrop-blur-sm text-white text-[10px] font-bold px-1.5 py-0.5 rounded">

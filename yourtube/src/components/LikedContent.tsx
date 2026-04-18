@@ -95,7 +95,7 @@ export default function LikedVideosContent() {
       <Link href={`/watch/${item.videoid?._id}`} className="flex-shrink-0">
         <div className="relative w-40 aspect-video bg-gray-100 rounded overflow-hidden">
           <video
-            src={item.videoid?.filepath ? `${process.env.NEXT_PUBLIC_BACKEND_URL}/${item.videoid.filepath.replace(/\\/g, '/')}` : ''}
+            src={item.videoid?.filepath ? encodeURI(`${process.env.NEXT_PUBLIC_BACKEND_URL}/${item.videoid.filepath.replace(/\\/g, '/').replace(/^\//, '')}`).replace(/%5C/g, '/') : ''}
             className="w-full h-full object-cover"
           />
         </div>

@@ -16,13 +16,13 @@ interface RelatedVideosProps {
 
 const DurationLabel = ({ filepath }: { filepath: string }) => {
   const [duration, setDuration] = React.useState("0:00");
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
   React.useEffect(() => {
     if (!filepath) return;
     const videoEl = document.createElement("video");
-    const normalizedPath = filepath.replace(/\\/g, '/');
-    videoEl.src = `${backendUrl}/${normalizedPath}`;
+    const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+    const normalizedPath = filepath.replace(/\\/g, '/').replace(/^\//, '');
+    videoEl.src = encodeURI(`${baseUrl}/${normalizedPath}`).replace(/%5C/g, '/');
     videoEl.onloadedmetadata = () => {
       const seconds = Math.floor(videoEl.duration);
       const hrs = Math.floor(seconds / 3600);
@@ -34,7 +34,7 @@ const DurationLabel = ({ filepath }: { filepath: string }) => {
         setDuration(`${mins}:${secs.toString().padStart(2, "0")}`);
       }
     };
-  }, [filepath, backendUrl]);
+  }, [filepath]);
 
   return (
     <div className="absolute bottom-1 right-1 bg-white/90 backdrop-blur-sm text-black text-[10px] font-black px-1 py-0.5 rounded-sm shadow-md z-20">
@@ -44,7 +44,6 @@ const DurationLabel = ({ filepath }: { filepath: string }) => {
 };
 
 export default function RelatedVideos({ videos }: RelatedVideosProps) {
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
   return (
     <div className="space-y-2">
       {videos.map((video) => (
@@ -55,7 +54,7 @@ export default function RelatedVideos({ videos }: RelatedVideosProps) {
         >
           <div className="relative w-40 aspect-video bg-gray-100 rounded overflow-hidden flex-shrink-0">
             <video
-              src={`${backendUrl}/${video.filepath.replace(/\\/g, '/')}#t=1`}
+              src={video?.filepath ? encodeURI(`${process.env.NEXT_PUBLIC_BACKEND_URL}/${video.filepath.replace(/\\/g, '/').replace(/^\//, '')}`).replace(/%5C/g, '/') + "#t=1" : ''}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200 pointer-events-none"
               muted
               playsInline

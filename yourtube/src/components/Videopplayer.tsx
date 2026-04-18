@@ -256,11 +256,25 @@ export default function VideoPlayer({ video }: VideoPlayerProps) {
 
   const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
   const videoSrc = video?.filepath 
-    ? (video.filepath.startsWith('http') ? video.filepath : `${backendUrl}/${video.filepath.replace(/\\/g, '/').replace(/^\//, '')}`)
+    ? (video.filepath.startsWith('http') 
+        ? video.filepath 
+        : encodeURI(`${backendUrl}/${video.filepath.replace(/\\/g, '/').replace(/^\//, '')}`).replace(/%5C/g, '/'))
     : '';
 
   useEffect(() => {
-    console.log("Video source calculated:", videoSrc);
+    if (videoSrc) {
+      console.log("🎬 Video Source URL:", videoSrc);
+      fetch(videoSrc, { method: 'HEAD' })
+        .then(res => {
+          if (res.ok) {
+            console.log("✅ Video file is accessible on server");
+          } else {
+            console.error(`❌ Video file NOT found (Status: ${res.status}). Path might be incorrect.`);
+          }
+        })
+        .catch(err => console.error("❌ Error verifying video file access:", err));
+    }
+    
     fetch(`${backendUrl}/`)
       .then(r => r.text())
       .then(t => console.log("Backend connectivity check:", t))
