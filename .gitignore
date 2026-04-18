@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+yourtube/node_modules/
+server/node_modules/
+
+# Environment Variables
+.env
+yourtube/.env
+server/.env
+
+# Video Uploads
+server/uploads/*
+!server/uploads/.gitkeep
+
+# Next.js Build
+yourtube/.next/
+yourtube/out/
+
+# IDE and OS files
+.vscode/
+.DS_Store
+*.pem
+
+# Scratch files
+yourtube/scratch/
+scratch/

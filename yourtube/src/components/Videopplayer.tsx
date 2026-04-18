@@ -39,6 +39,7 @@ export default function VideoPlayer({ video }: VideoPlayerProps) {
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
   const [showRemaining, setShowRemaining] = useState(false);
   const [quality, setQuality] = useState("1080p");
+  const [videoError, setVideoError] = useState<{ code: number; message: string } | null>(null);
   const controlsTimeout = useRef<NodeJS.Timeout | null>(null);
 
   const formatTime = (time: number) => {
@@ -253,9 +254,9 @@ export default function VideoPlayer({ video }: VideoPlayerProps) {
     controlsTimeout.current = setTimeout(() => setShowControls(false), 3000);
   };
 
-  const backendUrl = (process.env.NEXT_PUBLIC_BACKEND_URL || 'https://yourtube-zg73.onrender.com').replace(/\/$/, '');
+  const backendUrl = (process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000').replace(/\/$/, '');
   const videoSrc = video?.filepath 
-    ? `${backendUrl}/${video.filepath.replace(/\\/g, '/').replace(/^\//, '')}`
+    ? (video.filepath.startsWith('http') ? video.filepath : `${backendUrl}/${video.filepath.replace(/\\/g, '/').replace(/^\//, '')}`)
     : '';
 
   useEffect(() => {
@@ -291,16 +292,52 @@ export default function VideoPlayer({ video }: VideoPlayerProps) {
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
         onError={(e) => {
-           console.error("Video element error:", e);
            const videoElement = e.currentTarget;
-           if (videoElement.error) {
-             console.error("Detailed error:", videoElement.error.code, videoElement.error.message);
-           }
+           const error = videoElement.error;
+           console.error("Video element error:", error?.code, error?.message);
+           setVideoError({ 
+             code: error?.code || 4, 
+             message: error?.message || "Format error or file not found" 
+           });
         }}
         onLoadedMetadata={() => setDuration(videoRef.current?.duration || 0)}
       >
         Your browser does not support the video tag.
       </video>
+
+      {/* Error Overlay */}
+      {videoError && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-gray-900/90 backdrop-blur-xl transition-all animate-in fade-in duration-500">
+          <div className="max-w-md p-8 bg-white/5 border border-white/10 rounded-3xl text-center space-y-6 shadow-2xl">
+            <div className="w-20 h-20 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4 border border-red-500/50">
+              <X className="w-10 h-10 text-red-500" />
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-2xl font-black text-white tracking-tight">Playback Error</h3>
+              <p className="text-gray-400 font-medium">
+                {videoError.code === 4 ? "This video file is missing or in an unsupported format." : videoError.message}
+              </p>
+              <div className="text-[10px] font-mono text-red-400 bg-red-400/10 px-3 py-1 rounded-full inline-block mt-2">
+                Error Code: {videoError.code}
+              </div>
+            </div>
+            <div className="flex gap-3 pt-4">
+              <button 
+                onClick={() => window.location.reload()}
+                className="flex-1 bg-white text-black font-black py-3 rounded-xl hover:bg-gray-200 transition-all active:scale-95 shadow-lg"
+              >
+                Retry
+              </button>
+              <button 
+                onClick={() => router.push('/')}
+                className="flex-1 bg-white/10 text-white font-black py-3 rounded-xl hover:bg-white/20 transition-all active:scale-95 border border-white/10"
+              >
+                Go Home
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Control Bar */}
       <div className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 pt-12 transition-all duration-300 z-30 ${showControls || !isPlaying ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2 pointer-events-none'}`}>

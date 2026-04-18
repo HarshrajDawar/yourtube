@@ -23,10 +23,16 @@ export const UserProvider = ({ children }) => {
     const hour = new Date().getHours();
     const isSouthIndia = SOUTH_INDIAN_STATES.includes(userState);
     const isSpecialTime = hour >= 10 && hour < 12;
+    const isDayTime = hour >= 6 && hour < 18;
 
-    console.log(`THEME CHECK: State=${userState}, Time=${hour}h, SouthIndia=${isSouthIndia}, Target=${(isSouthIndia && isSpecialTime) ? 'Light' : 'Dark'}`);
+    // Fixed logic: Use Daytime (6AM-6PM) for most regions.
+    // For South India, we might have kept the special 10-12 rule, 
+    // but typically daytime should be light for everyone.
+    const shouldBeLight = isSouthIndia ? isSpecialTime : isDayTime;
 
-    if (isSouthIndia && isSpecialTime) {
+    console.log(`THEME CHECK: State=${userState}, Time=${hour}h, SouthIndia=${isSouthIndia}, Target=${shouldBeLight ? 'Light' : 'Dark'}`);
+
+    if (shouldBeLight) {
       document.documentElement.classList.remove("dark");
     } else {
       document.documentElement.classList.add("dark");
@@ -41,7 +47,7 @@ export const UserProvider = ({ children }) => {
   useEffect(() => {
     applyTheme();
     
-    // Set interval to check theme every minute in case time passes 10am/12pm while on page
+    // Set interval to check theme every minute in case time passes hours while on page
     const interval = setInterval(applyTheme, 60000);
     
     if (userState !== "Unknown") {
