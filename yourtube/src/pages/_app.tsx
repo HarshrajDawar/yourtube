@@ -1,6 +1,5 @@
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
-import FooterSignature from "@/components/FooterSignature";
 import { Toaster } from "@/components/ui/sonner";
 import "@/styles/globals.css";
 import type { AppProps } from "next/app";
@@ -14,7 +13,7 @@ export default function App({ Component, pageProps }: AppProps) {
 
   return (
     <UserProvider>
-      <div className="min-h-screen bg-background text-foreground transition-colors duration-300 flex flex-col">
+      <div className="min-h-screen bg-background text-foreground transition-colors duration-300">
         <Script 
           id="razorpay-checkout"
           src="https://checkout.razorpay.com/v1/checkout.js" 
@@ -24,13 +23,10 @@ export default function App({ Component, pageProps }: AppProps) {
         <Header onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
         <Toaster theme="dark" position="top-center" closeButton />
         <OTPModal />
-        <div className="flex relative flex-1">
+        <div className="flex relative">
           <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
-          <div className="flex-1 min-w-0 bg-background flex flex-col">
-            <main className="flex-1">
-              <Component {...pageProps} />
-            </main>
-            <FooterSignature />
+          <div className="flex-1 min-w-0 bg-background">
+            <Component {...pageProps} />
           </div>
         </div>
       </div>
